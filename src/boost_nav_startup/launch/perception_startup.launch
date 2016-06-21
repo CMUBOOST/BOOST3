@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+	<!-- Start 3vistor driver, see http://wiki.ros.org/sick_3vistort_driver -->
+	<include file="$(find sick_3vistort_driver)/launch/sick_3vistort_driver.launch" />
+
+	<!-- Start tim561 driver, see http://wiki.ros.org/sick_tim -->
+	<include file="$(find sick_tim)/launch/sick_tim561.launch" />
+
+	<!-- Start navigation cameras -->
+	<include file="$(find ueye_cam)/launch/camera1_driver.launch" />
+	<include file="$(find ueye_cam)/launch/camera2_driver.launch" />
+
+</launch>

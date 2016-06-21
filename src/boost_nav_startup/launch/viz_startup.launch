@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+	
+	<!-- urdf xml robot description loaded on the Parameter Server-->
+	<param name="robot_description" textfile="$(find boost_urdf)/robots/boost_stalker.urdf" />
+
+	<!-- robot visualization -->
+	<node name="rviz" pkg="rviz" type="rviz" required="true" />
+
+</launch>

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<launch>
+
+<!-- Start nmea_navsat_driver, see http://wiki.ros.org/nmea_navsat_driver -->
+	<node pkg="nmea_navsat_driver" name="nmea_serial_driver" type="nmea_serial_driver" required="false" output="screen" >
+		<param name="port" value="/dev/gps_usb_serial" />
+		<param name="baud" value="115200" />
+		<param name="frame_id" value="/gps" />
+		<param name="useRMC" value="False" />
+	</node>
+
+<!-- Start um7 driver, see http://wiki.ros.org/um7 -->
+
+	<node pkg="um7" name="imu_um7_driver" type="um7_driver" required="true" output="screen" >
+		<remap from="imu/data" to="um7/imu/data" />
+		<remap from="imu/mag" to="um7/imu/mag" />
+		<remap from="imu/rpy" to="um7/imu/rpy" />
+		<remap from="imu/temperature" to="um7/imu/temperature" />
+		<param name="port" value="/dev/imu_usb_serial" />
+		<param name="frame_id" value="imu_link" />
+		<param name="mag_updates" value="true" />
+		<param name="zero_gyros" value="true" />
+		<!-- <param name="covariance" value="1e9 1e9 1e9 1e9 1e9 0.5 1e9 1e9 1e9"/> -->
+		<param name="covariance" value="0 0 0 0 0 0 0 0 0" />
+	</node>
+
+
+</launch>

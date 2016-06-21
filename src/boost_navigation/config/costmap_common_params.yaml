@@ -1,0 +1,11 @@
+obstacle_range: 2.5
+raytrace_range: 3.0
+footprint: [[0.7874, -0.2794], [0.7874, 0.2794], [-0.7874, 0.2794], [-0.7874, -0.2794]]
+#robot_radius: ir_of_robot
+inflation_radius: 0.05
+
+# observation_sources: laser_scan_sensor point_cloud_sensor
+
+# laser_scan_sensor: {sensor_frame: sick_561_laser, data_type: LaserScan, topic: /scan, marking: false, clearing: false}
+
+# point_cloud_sensor: {sensor_frame: camera_tof, data_type: PointCloud, topic: /sick_3vistor_driver/points, marking: false, clearing: false}

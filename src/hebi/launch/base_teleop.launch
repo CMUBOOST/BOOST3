@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+	<!-- Start joy node -->
+	<arg name="joy_dev" default="/dev/input/js1" />
+
+	<node pkg="joy" name="joy_node" type="joy_node" />
+
+	<!-- Launch hebi teleop node -->
+	<node pkg="hebi" name="stalker_base_motor_commands" type="stalker_base_motor_commands" required="true" output="screen" >
+		<param name="publish_frequency" value="50" />
+	</node>
+
+</launch>
+ 
