@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  sensor_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -128,7 +129,7 @@ include_directories(
 # add_dependencies(boost_nav_startup ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(boost_nav_startup_node src/boost_nav_startup_node.cpp)
+# add_executable(um7_covariance_pub src/um7_covariance_pub.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above

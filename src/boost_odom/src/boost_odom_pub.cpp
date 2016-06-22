@@ -234,8 +234,8 @@ int main(int argc, char **argv)
       odom.twist.covariance[28] = 1e6;
       odom.twist.covariance[35] = 0.174;
 
-      odom.pose.covariance[0] = 0.001; 
-      odom.pose.covariance[7] = 0.1;
+      odom.pose.covariance[0] = 1.0; 
+      odom.pose.covariance[7] = 1.0;
       odom.pose.covariance[14] = 1e-9;
       odom.pose.covariance[21] = 1e6;
       odom.pose.covariance[28] = 1e6;
