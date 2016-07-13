@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+
+<!-- Start image_rotate -->
+	<node pkg="image_rotate" name="image_rotate_node_1" type="image_rotate" required="true" output="screen" >
+		<param name="target_frame_id" value="/camera1/image_raw" />
+		<param name="target_x" value="-1.0" />
+		<param name="target_y" value="1.0" />
+		<param name="target_z" value="1.0" />
+		<param name="source_frame_id" value="/camera1/image_raw" />
+		<param name="source_x" value="1.0" />
+		<param name="source_y" value="1.0" />
+		<param name="source_z" value="1.0" />
+		<param name="output_frame_id" value="/rotated/image1" />
+		<param name="input_frame_id" value="/camera1/image_raw" />
+		<param name="use_camera_info" value="false" />
+		<param name="max_angular_rate" value="10.0" />
+		<param name="output_image_size" value="2" />
+		<remap from="/rotated/image" to="/rotated/image1" />
+	</node>
+
+
+
+
+</launch>

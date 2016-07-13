@@ -91,7 +91,7 @@ int main(int argc, char **argv)
     // std::cout << "currentPosition:   " << currentPosition[i] << ";   current velocity:  " << currentVelocity[i] << std::endl;
   }
   std::cout << std::endl;
-  sleep(5);
+  // sleep(2);
 
   // Set initial positions to 0
   double x = 0.0;
@@ -110,6 +110,7 @@ int main(int argc, char **argv)
     if (dt < 1e-6) {
       ROS_INFO("Time step in boost_odom is zero!!!");
       std::cout << dt << std::endl;
+      last_time = current_time;
       ros::spinOnce();
       continue;
     }
@@ -256,8 +257,8 @@ int main(int argc, char **argv)
     last_time = current_time;
     
     // perform subscribed callback again and wait until it has to publish again
-    ros::spinOnce();
     r.sleep();
+    ros::spinOnce();  
   }
   return 0;
 

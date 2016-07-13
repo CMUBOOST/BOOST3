@@ -282,8 +282,10 @@ int main(int argc, char **argv)
 
   // Get the names of non-fixed joints in the model:
   
-  std::vector<std::string> joint_names = {"Front_Left_Drive", "Rear_Left_Drive", "Front_Right_Drive", "Rear_Right_Drive", "X-00021", "X-00022", "X-00023"};
-  std::vector<std::string> family_names = {"BOOST", "BOOST", "BOOST", "BOOST", "BOOST", "BOOST", "BOOST"};
+  // std::vector<std::string> joint_names = {"Front_Left_Drive", "Rear_Left_Drive", "Front_Right_Drive", "Rear_Right_Drive", "X-00021", "X-00022", "X-00023"};
+  // std::vector<std::string> family_names = {"BOOST", "BOOST", "BOOST", "BOOST", "BOOST", "BOOST", "BOOST"};
+  std::vector<std::string> joint_names = {"Front_Left_Drive", "Rear_Left_Drive", "Front_Right_Drive", "Rear_Right_Drive"};
+  std::vector<std::string> family_names = {"BOOST", "BOOST", "BOOST", "BOOST"};
 
   /**
    * The advertise() function is how you tell ROS that you want to

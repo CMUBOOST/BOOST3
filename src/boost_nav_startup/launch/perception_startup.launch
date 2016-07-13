@@ -8,6 +8,6 @@
 
 	<!-- Start navigation cameras -->
 	<include file="$(find ueye_cam)/launch/camera1_driver.launch" />
-	<include file="$(find ueye_cam)/launch/camera2_driver.launch" />
+	<!-- <include file="$(find ueye_cam)/launch/camera2_driver.launch" /> -->
 
 </launch>

@@ -65,7 +65,7 @@
 
 <!-- Start boost_odom publisher -->
 
-	<node pkg="boost_odom" name="boost_odom_pub" type="boost_odom_pub" required="true" output="screen"/>
+	<node pkg="boost_odom" name="boost_odom_pub" type="boost_odom_pub" required="false" output="screen"/>
 
 
 </launch>

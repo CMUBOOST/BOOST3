@@ -5,13 +5,14 @@
 	<node pkg="nmea_navsat_driver" name="nmea_serial_driver" type="nmea_serial_driver" required="false" output="screen" >
 		<param name="port" value="/dev/gps_usb_serial" />
 		<param name="baud" value="115200" />
-		<param name="frame_id" value="/gps" />
+		<param name="frame_id" value="GPS_link" />
 		<param name="useRMC" value="False" />
+		<!-- <remap from="fix" to="gps/fix" /> -->
 	</node>
 
-<!-- Start um7 driver, see http://wiki.ros.org/um7 -->
+<!-- Start base um7 driver, see http://wiki.ros.org/um7 -->
 
-	<node pkg="um7" name="imu_um7_driver" type="um7_driver" required="true" output="screen" >
+	<node pkg="um7" name="imu_um7_base_driver" type="um7_driver" required="true" output="screen" >
 		<remap from="imu/data" to="um7/imu/data" />
 		<remap from="imu/mag" to="um7/imu/mag" />
 		<remap from="imu/rpy" to="um7/imu/rpy" />
@@ -28,5 +29,23 @@
 
 	</node>
 
+<!-- Start mast um7 driver, see http://wiki.ros.org/um7 -->
+
+	<node pkg="um7" name="imu_um7_mast_driver" type="um7_driver" respawn="true" output="screen" >
+		<remap from="imu/data" to="mast/imu/data" />
+		<remap from="imu/mag" to="mast/imu/mag" />
+		<remap from="imu/rpy" to="mast/imu/rpy" />
+		<remap from="imu/temperature" to="mast/imu/temperature" />
+		<param name="port" value="/dev/imu_mast_usb_serial" />
+		<param name="frame_id" value="imu_mast_link" />
+		<param name="mag_updates" value="true" />
+		<param name="zero_gyros" value="true" />
+		<!-- <param name="covariance" value="1e9 1e9 1e9 1e9 1e9 0.5 1e9 1e9 1e9"/> -->
+		<param name="covariance" value="1e9 0 0 0 1e9 0 0 0 0.025" />
+		<!-- stdev is squared to get variance, default is 0.06 and 0.005, respectively -->
+		<param name="linear_acceleration_stdev" value="0.06" />
+		<param name="angular_velocity_stdev" value="0.005" />
+
+	</node>
 
 </launch>

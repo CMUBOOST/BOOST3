@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!-- Launch file for nodes required for GPS fusion into localization -->
+
+<launch>
+
+	<!-- Launch gps_common utm_odometry_node, which will output GPS fix in UTM coordinate frame -->
+	<node pkg="gps_common" type="utm_odometry_node" name="utm_odometry_node" required="true" output="screen" >
+		<param name="child_frame_id" value="GPS_link" />
+		<remap from="odom" to="odometry/utm"/>
+	</node>
+
+	<!-- Launch gps heading node, which publishes an IMU with orientations calculated using consecutive GPS coordinates -->
+	<!-- <node pkg="boost_gps_heading" type="boost_gps_avg_heading_node" name="gps_heading_node" required="true" output="screen"/> -->
+
+	<!-- Launch ukf_odom node, which fuses the all the sensors into one translationally relative and orietnationally absolute state estimate-->
+	<include file="$(find boost_navigation)/launch/ukf_odom.launch"/>
+
+	<!-- Launch coarse_gps_odometry node, which combines location in UTM coordinates with absolute orientation from robot_localization node above -->
+	<node pkg="boost_coarse_gps_odometry" type="boost_coarse_gps_odometry_node" name="coarse_gps_odometry_node" required="true">
+		<param name="publish_tf" value="true" />
+	</node>
+
+	<!-- Launch fine_ukf_odometery node, which fuses twist from ukf_odom with absolute position of odometry/coarse_gps -->
+	<!-- <include file="$(find boost_navigation)/launch/gps_odom_fusion.launch"/> -->
+
+	<!-- Launch Laser Scan Assembler -->
+  <node type="laser_scan_assembler" pkg="laser_assembler" name="my_assembler">
+	<param name="max_scans" type="int" value="1000" />
+	<param name="fixed_frame" type="string" value="odom/ukf_dead_reckoning" />
+  </node>
+</launch>
