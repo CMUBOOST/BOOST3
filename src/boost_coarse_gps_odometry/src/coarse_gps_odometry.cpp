@@ -31,13 +31,24 @@ double gps_height = 1.702; // height of gps receiver in meters
 double prev_dy = 0.0;
 
 // TODO - Make a ros param
+/*
+ * Simpson Fields
+ */
 double x_datum = 340634.710905;
 double y_datum = 3832788.98314;
 double z_datum = 222.819;
 
+/*
+ * The Cut
+ */
+// double x_datum = 589611.370198;
+// double y_datum = 4477380.87125;
+// double z_datum = 257.035;
+
 
 void coarseOdomCallback(const nav_msgs::Odometry::ConstPtr& trans_msg, const nav_msgs::Odometry::ConstPtr& orient_msg, const sensor_msgs::Imu::ConstPtr& imu_msg)
 {
+  double dy_max = 0.01;
 	ROS_DEBUG_STREAM("Got into callback!");
   // ROS_INFO_STREAM("Time difference of fix and imu topics is :" << dt);
 	
@@ -48,12 +59,12 @@ void coarseOdomCallback(const nav_msgs::Odometry::ConstPtr& trans_msg, const nav
 	double dy = gps_height*sin(tilt_angle);
   double dt = fabs((imu_msg->header.stamp.sec + 1e-9 * imu_msg->header.stamp.nsec) - (trans_msg->header.stamp.sec + 1e-9 * trans_msg->header.stamp.nsec));
 
-  if (fabs(dy - prev_dy) > 0.02)
+  if (fabs(dy - prev_dy) > dy_max)
   {
-    if (dy < 0) dy = -0.02;
-    if (dy > 0) dy = 0.02;
+    if (dy < 0) dy = -dy_max;
+    if (dy > 0) dy = dy_max;
   }
-	ROS_INFO_STREAM("Tilt angle: " << tilt_angle * 180 / PI << "\tdy: " << dy << "\tdt: " << dt << "\tdelta dy: " << fabs(dy - prev_dy)); 
+	ROS_DEBUG_STREAM("Tilt angle: " << tilt_angle * 180 / PI << "\tdy: " << dy << "\tdt: " << dt << "\tdelta dy: " << fabs(dy - prev_dy)); 
 	
 	double quat_x = orient_msg->pose.pose.orientation.x;
 	double quat_y = orient_msg->pose.pose.orientation.y;

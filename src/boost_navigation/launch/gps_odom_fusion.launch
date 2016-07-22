@@ -15,7 +15,7 @@
       <param name="sensor_timeout" value="0.1"/>
       <param name="two_d_mode" value="true"/>
 
-      <param name="publish_tf" value="true"/>
+      <param name="publish_tf" value="false"/>
 
       <!-- Defaults to "map" if unspecified -->
       <param name="map_frame" value="map"/>

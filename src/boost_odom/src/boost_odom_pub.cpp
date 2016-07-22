@@ -46,6 +46,7 @@ void jointstateCallback(const sensor_msgs::JointState::ConstPtr& msg)
   */
 
   // Grab current position and velocity, fl rl fr rr
+  // ROS_INFO_STREAM("Got into callback!");
   for (int i = 0; i < 4; i++)
   {
     currentPosition[i] = (msg->position[i] * TIRE_RADIUS);  //convert to linear position
@@ -106,10 +107,10 @@ int main(int argc, char **argv)
     //  of the velocity between updates 
     double dt = (current_time - last_time).toSec();
 
+    // ROS_INFO("dt is %5.10f!", dt);
     // check for division by zero
     if (dt < 1e-6) {
-      ROS_INFO("Time step in boost_odom is zero!!!");
-      std::cout << dt << std::endl;
+      ROS_INFO("Time step in boost_odom is nearly zero, dt is %5.10f!", dt);
       last_time = current_time;
       ros::spinOnce();
       continue;

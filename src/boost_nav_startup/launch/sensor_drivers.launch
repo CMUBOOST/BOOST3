@@ -48,4 +48,14 @@
 
 	</node>
 
+
+<!-- Start hokuyo node -->
+	<node pkg="hokuyo_node" name="hokuyo_node" type="hokuyo_node" respawn="true" output="screen" >
+		<remap from="scan" to="scan/hokuyo" />
+		<param name="frame_id" value="hokuyo" />
+	</node>
+
+<!-- Publish TF for Hokuyo node -->
+	<node pkg="tf" type="static_transform_publisher" name="hokuyo_tf_static_broadcaster" args="-0.14478 0.035 1.5875 3.14159 0.5662063 0 base_link hokuyo 100" />
+
 </launch>

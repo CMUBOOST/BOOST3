@@ -1,5 +1,5 @@
 TrajectoryPlannerROS:
-  max_vel_x: 1.25
+  max_vel_x: 0.35
   min_vel_x: 0.1
   min_vel_theta: 0.5
   max_vel_theta: 1.25
@@ -17,5 +17,5 @@ TrajectoryPlannerROS:
   xy_goal_tolerance: 0.1
 
   sim_time: 1.0
-  vx_samples: 20
-  vtheta_samples: 20
+  vx_samples: 2
+  vtheta_samples: 10

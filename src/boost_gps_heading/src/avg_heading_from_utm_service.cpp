@@ -23,7 +23,6 @@
 		- WRITE LOW PASS FILTER FOR CHANGES IN COURSE HEADING, STORE PREVIOUS HEADING SOMEWHERE
 */
 
-const double MIN_SPEED = 0.1; // m/s
 const double pi = 4*atan(1);
 const double toRadians = pi / 180.0;
 double prevX = 0.0;
@@ -37,6 +36,8 @@ double currSpeed = 0.0;
 int sample_size = 20;
 float pubRate = 20;
 double ang_velocity; 
+
+double forward_velocity = 0.1;
 
 
 typedef struct list_node list;
@@ -117,33 +118,7 @@ double bestFit(queue *Q) {
     }
         
     return heading;
-}
-
-double averageHeading(queue *Q) {
-    // note size of queue must be larger than 1
-    double avg_heading = 0.0;
-    double dx;
-    double dy;
-    double curr_x, curr_y, prev_x, prev_y;
-    double heading;
-    list *prev = Q->front;
-    list *cur = prev->next;
-    for (int i = 1; i < Q->size; i++) {
-        curr_x = cur->x;
-        curr_y = cur->y;
-        prev_x = prev->x;
-        prev_y = prev->y;
-	 
-        dx = curr_x - prev_x;
-		dy = curr_y - prev_y;
-        heading = fmod(atan2(dy, dx) + 2.0 * pi, 2.0 * pi);
-        avg_heading += heading;
-        prev = prev->next;
-        cur = cur->next;
-    }
-    avg_heading = avg_heading / (Q->size - 1);    
-    return avg_heading;
-}    
+}  
 
 // TODO: ADD ALTITUDE TO GET 3D POSE ESTIMATE
 
@@ -154,39 +129,22 @@ void gpsHeadingCallback(const nav_msgs::Odometry::ConstPtr& utm_msg, const geome
 	ang_velocity = twist_msg->twist.twist.angular.z;	
 	
 	// Add x and y to respective arrays, along with time, check for GBAS and fix
-	if (fabs(twist_msg->twist.twist.linear.x) > MIN_SPEED)
-	{
-		prevX = currX;
-		prevY = currY;
-		prevTime = currTime;
-		prevSpeed = currSpeed;
 
-		currX = utm_msg->pose.pose.position.x;
-		currY = utm_msg->pose.pose.position.y;
-		currTime = utm_msg->header.stamp.sec + (1e-9 * utm_msg->header.stamp.nsec);
+	prevX = currX;
+	prevY = currY;
+	prevTime = currTime;
+	prevSpeed = currSpeed;
 
-		currSpeed = twist_msg->twist.twist.linear.x;
+	currX = utm_msg->pose.pose.position.x;
+	currY = utm_msg->pose.pose.position.y;
+	currTime = utm_msg->header.stamp.sec + (1e-9 * utm_msg->header.stamp.nsec);
 
-		return;
-	} 
-	else 
-	{
-		ROS_DEBUG_STREAM("GBAS is moving too slow!  Linear Speed: " << twist_msg->twist.twist.linear.x);
-		return;
-	}
+	currSpeed = twist_msg->twist.twist.linear.x;
+
 }
 
-
-
-
-int main(int argc, char **argv)
+bool driveForward( std_srvs::Empty::Request &req, std_srvs::Empty::Response &resp)
 {
-
-	const double MIN_DIST = 0.005; // meters, needs to be at least 3 times the standard deviation of the GPS signal
-	const double MAX_TIME = 5; // seconds
-
-	ros::init(argc, argv, "boost_avg_heading_from_gps_publisher");
-
 	// Use message_filters to combine and sync two topics
 	ros::NodeHandle nh;
 	message_filters::Subscriber<nav_msgs::Odometry> utm_sub(nh, "odometry/utm", 1);
@@ -197,13 +155,18 @@ int main(int argc, char **argv)
 	message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), utm_sub, twist_sub);
 	sync.registerCallback(boost::bind(&gpsHeadingCallback, _1, _2));
 
-	// Initialize pose publisher, which will hold the heading information calculated in the callBack
-	// ros::Publisher pose_pub = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("gpsHeading", 1);
+	// Initialize Imu publisher, which will hold the heading information calculated in the callBack
 	ros::Publisher imu_pub = nh.advertise<sensor_msgs::Imu>("gps/imu/data", 1, false);
 
-	prevTime = ros::Time::now().toSec();
-
-	// ros::Subscriber sub_fix = nh.subscribe("fix", 1, gpsHeadingCallback);
+	// Start moving the robot at a constant velocity with a twist of 0.
+	ros::Publisher twist_pub = nh.advertise<geometry_msgs::Twist>("nav_vel", 1);
+	// Populate Twist message
+	geometry_msgs::Twist twist_msg;
+	twist_msg.linear.x =  forward_velocity; // Fill with constant linear velocity
+	twist_msg.angular.z = 0; // Fill with angular velocity		
+		
+	// Publish Twist message
+	twist_pub.publish(twist_msg);		
 
 	// Sleep to allow time for fix to be updated, HACK- FIX LATER
 	sleep(1);
@@ -213,24 +176,22 @@ int main(int argc, char **argv)
 
 	double xCheck = currX;
 	double yCheck = currY;
-	double avg_heading = 0;
 	double fit_heading = 0;	
 	
-    	// Create Queue header for position data
-    	queue *posQ = new queue;
-    	posQ->size = 0;
-    	posQ->front = NULL;
-    	posQ->back = NULL;
+	// Create Queue header for position data
+	queue *posQ = new queue;
+	posQ->size = 0;
+	posQ->front = NULL;
+	posQ->back = NULL;
 
-	ros::Rate r(pubRate);
-	while (ros::ok())
+
+	// Collect data points until queue is full
+	while (posQ->size < sample_size)
 	{
-		
 		// Check that positions were updated
 		if (xCheck == currX || yCheck == currY)
 		{
 			ROS_DEBUG_STREAM(" X/Y have not been updated!");
-
 			r.sleep();
 			ros::spinOnce();
 			continue;
@@ -238,16 +199,6 @@ int main(int argc, char **argv)
 		double xCheck = currX;
 		double yCheck = currY;
 
-		double dt = currTime - prevTime;
-
-		if (dt > MAX_TIME)
-		{
-			ROS_DEBUG_STREAM("Time between coordinates is " << dt << ", which is greater than " << MAX_TIME << "!");
-
-			r.sleep();
-			ros::spinOnce();
-			continue;
-		}
 
 		// Calculate distance between two coordinates
 		double dx = currX-prevX;
@@ -255,54 +206,24 @@ int main(int argc, char **argv)
 		double dist = pow( dx*dx + dy*dy, 0.5);  // output in meters
 		ROS_DEBUG("dist is: %05.16f", dist);
 
-		// Check for distance to be greater than minimum required, effectively enforcing a min velocity constraint
-		if (dist < MIN_DIST)
-		{
-			ROS_DEBUG("Distance between coordinates is %05.10f, which is smaller than %05.10f, dt is %05.10f!", dist, MIN_DIST, dt);
-			ROS_DEBUG("Previous Location is: x: %05.10f, y: %05.10f", prevX, prevY);
-			ROS_DEBUG("Current Location is:  x: %05.10f, y: %05.10f", currX, currY);
-
-			r.sleep();
-			ros::spinOnce();
-			continue;
-		}
-
-        	// Enqueue new position data onto the position queue
-        	enq(posQ, currX, currY, currTime);
-        	if (posQ->size > sample_size) deq(posQ);
-
-        	// Loop through the queue and print the positions within
-        	// ROS_DEBUG_STREAM("CURRENT POSITION QUEUE:");
-        	// list *cur = posQ->front;
-        	// for (int j = 1; j <= posQ->size; j++) {
-        	//     //ROS_INFO_STREAM(j << ":  x: " << cur->x << " y: " << cur->y << " time: " << cur->time);
-        	//     // printf("%d:  x: %05.10f  y: %05.10f\n", j, cur->x, cur->y);
-        	//     cur = cur->next;
-        	// }
-
-        	// Calculate Average Heading using a line of best fit
-        	// double slope = bestFit(posQ);
-        	// ROS_INFO_STREAM("slope = " << slope << "\n");
+    	// Enqueue new position data onto the position queue
+    	enq(posQ, currX, currY, currTime);
+    	if (posQ->size > sample_size) deq(posQ);
         
 		ROS_DEBUG("Previous Location is: x: %05.10f, y: %05.10f", prevX, prevY);
 		ROS_DEBUG("Current Location is:  x: %05.10f, y: %05.10f", currX, prevY);
 
-		double heading = fmod(atan2(dy, dx) + 2.0*pi, 2.0*pi);
-		ROS_DEBUG_STREAM("Heading is " << heading / toRadians);
-
-        	// Calculate Average Heading from position Queue (simple average)
-        	if (posQ->size == sample_size) {
-			avg_heading = averageHeading(posQ);
+    	// Calculate Average Heading from position Queue (simple average)
+    	if (posQ->size == sample_size) 
+    	{
 			fit_heading = bestFit(posQ);
 		}
 
-        	ROS_DEBUG_STREAM("Average Heading is  " << avg_heading / toRadians);
-    		ROS_DEBUG_STREAM("Line Fit Heading is " << fit_heading / toRadians);
+		ROS_DEBUG_STREAM("Line Fit Heading is " << fit_heading / toRadians);
 		// Check for robot moving forward or backwards!
 		if ((currSpeed < 0) && (prevSpeed < 0))
 		{
 			ROS_DEBUG_STREAM("Going in reverse!");
-			avg_heading = fmod((avg_heading - pi), 2.0*pi);
 			fit_heading = fmod((fit_heading - pi), 2.0*pi);
 		} else if (((currSpeed < 0) && (prevSpeed > 0)) || ((currSpeed > 0) && (prevSpeed < 0)))
 		{
@@ -322,6 +243,12 @@ int main(int argc, char **argv)
 				deq(posQ);
 			}
 		} 
+
+		fit_heading = bestFit(posQ);
+
+
+	}
+
 				
 		
 		// Populate Imu message
@@ -384,30 +311,6 @@ int main(int argc, char **argv)
 			}
 		}
 
-		// // Populate pose message
-		// geometry_msgs::PoseWithCovarianceStamped gpsPose;
-		// geometry_msgs::Quaternion pose_quat = tf::createQuaternionMsgFromYaw(avg_heading);
-
-		// gpsPose.header.stamp = curr_time;
-		// gpsPose.header.frame_id = "gpsHeading_link";
-		// gpsPose.pose.pose.orientation = pose_quat;
-
-		// gpsPose.pose.covariance[0] = 1e6; 
-		// gpsPose.pose.covariance[7] = 1e6;
-		// gpsPose.pose.covariance[14] = 1e6;
-		// gpsPose.pose.covariance[21] = 1e6;
-		// gpsPose.pose.covariance[28] = 1e6;
-		// gpsPose.pose.covariance[35] = 1e-9;
-
-		// if ((ros::Time::now() - curr_time).toSec() < MAX_TIME)
-		// 	{
-		// 	pose_pub.publish(gpsPose);
-		// 	}
-		// else 
-		// {
-		// 	ROS_INFO_STREAM("Not publishing, heading not updated!");
-		// }
-
 		// Update previous time with current and start loop over again
 		r.sleep();
 		ros::spinOnce();
@@ -426,6 +329,26 @@ int main(int argc, char **argv)
         delete temp;
     }
     delete posQ;
-	return 0;
+	return true;
+
+}
+
+int main(int argc, char **argv)
+{
+	ros::init(argc, argv, "boost_avg_heading_from_gps_publisher");
+
+	ros::NodeHandle n;
+
+	// Register service with the master
+	ros::ServiceServer server = n.advertiseService("acquire_Heading", &driveForward);
+
+	//
+
+	ros::Rate rate(4);
+	while (ros::ok())
+	{
+		ros::spinOnce();
+		rate.sleep();
+	}
 
 }
