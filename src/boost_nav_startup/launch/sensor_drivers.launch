@@ -29,33 +29,24 @@
 
 	</node>
 
-<!-- Start mast um7 driver, see http://wiki.ros.org/um7 -->
-
-	<node pkg="um7" name="imu_um7_mast_driver" type="um7_driver" respawn="true" output="screen" >
-		<remap from="imu/data" to="mast/imu/data" />
-		<remap from="imu/mag" to="mast/imu/mag" />
-		<remap from="imu/rpy" to="mast/imu/rpy" />
-		<remap from="imu/temperature" to="mast/imu/temperature" />
-		<param name="port" value="/dev/imu_mast_usb_serial" />
-		<param name="frame_id" value="imu_mast_link" />
-		<param name="mag_updates" value="true" />
-		<param name="zero_gyros" value="true" />
-		<!-- <param name="covariance" value="1e9 1e9 1e9 1e9 1e9 0.5 1e9 1e9 1e9"/> -->
-		<param name="covariance" value="1e9 0 0 0 1e9 0 0 0 0.025" />
-		<!-- stdev is squared to get variance, default is 0.06 and 0.005, respectively -->
-		<param name="linear_acceleration_stdev" value="0.06" />
-		<param name="angular_velocity_stdev" value="0.005" />
-
-	</node>
-
-
 <!-- Start hokuyo node -->
-	<node pkg="hokuyo_node" name="hokuyo_node" type="hokuyo_node" respawn="true" output="screen" >
+<!-- 	<node pkg="hokuyo_node" name="hokuyo_node" type="hokuyo_node" respawn="true" output="screen" >
 		<remap from="scan" to="scan/hokuyo" />
 		<param name="frame_id" value="hokuyo" />
-	</node>
+	</node> -->
 
 <!-- Publish TF for Hokuyo node -->
 	<node pkg="tf" type="static_transform_publisher" name="hokuyo_tf_static_broadcaster" args="-0.14478 0.035 1.5875 3.14159 0.5662063 0 base_link hokuyo 100" />
+
+<!-- Start xsens driver -->
+<!-- 	<node pkg="xsens_driver" type="mtdevice.py" name="mtdevice.py" args="-f 100 -m 3 -x 39"  output="screen" /> -->
+
+	<node pkg="xsens_driver" type="mtnode.py" name="mtnode" respawn="true" output="screen" >
+		<param name="device" value="/dev/xsens" />
+		<param name="baudrate" value="115200" />
+		<param name="frame_id" value="mti_imu_link" />
+		<param name="frame_local" value="ENU" />
+		<param name="frame_local_imu" value="ENU" />
+	</node>
 
 </launch>

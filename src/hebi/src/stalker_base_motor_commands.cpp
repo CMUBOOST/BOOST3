@@ -351,7 +351,7 @@ int main(int argc, char **argv)
    * away the oldest ones.
    */
   ros::Subscriber sub_joint_command = n.subscribe("joint_commands", 1, commandCallback);
-  ros::Subscriber sub_skid_vel = n.subscribe("twist_mux/cmd_vel", 1, cmdvelCallback);  //CHANGE BACK TO cmd_vel LATER!!
+  ros::Subscriber sub_skid_vel = n.subscribe("twist_mux/cmd_vel", 1, cmdvelCallback);  
   // ros::Subscriber sub_cmd_joy = n.subscribe("joy", 1, joyCallback);
 
   hebi::GroupFeedback fbk(group->size());

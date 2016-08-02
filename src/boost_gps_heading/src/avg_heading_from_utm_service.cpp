@@ -1,17 +1,12 @@
 #include "ros/ros.h"
 #include "std_msgs/Float32.h"
+#include <std_srvs/Empty.h>
 
-#include <geometry_msgs/TwistWithCovarianceStamped.h>
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
-#include <sensor_msgs/NavSatFix.h>
+#include <geometry_msgs/Twist.h>
 #include <sensor_msgs/Imu.h>
 #include <nav_msgs/Odometry.h>
 
 #include "tf/transform_broadcaster.h"
-
-#include <message_filters/subscriber.h>
-#include <message_filters/synchronizer.h>
-#include <message_filters/sync_policies/approximate_time.h>
 
 #include <sstream>
 #include <string>
@@ -31,14 +26,11 @@ double currX = 0.0;
 double currY = 0.0;
 double prevTime = 0.0;
 double currTime = 0.0;
-double prevSpeed = 0.0;
-double currSpeed = 0.0;
-int sample_size = 20;
-float pubRate = 20;
-double ang_velocity; 
+
+int sample_size = 100;
+double pub_rate = 20;
 
 double forward_velocity = 0.1;
-
 
 typedef struct list_node list;
 struct list_node {
@@ -122,51 +114,37 @@ double bestFit(queue *Q) {
 
 // TODO: ADD ALTITUDE TO GET 3D POSE ESTIMATE
 
-void gpsHeadingCallback(const nav_msgs::Odometry::ConstPtr& utm_msg, const geometry_msgs::TwistWithCovarianceStamped::ConstPtr& twist_msg)
+void gpsHeadingCallback(const nav_msgs::Odometry::ConstPtr& utm_msg)
 {
 	ROS_DEBUG_STREAM("Got into callback!");
-	
-	ang_velocity = twist_msg->twist.twist.angular.z;	
 	
 	// Add x and y to respective arrays, along with time, check for GBAS and fix
 
 	prevX = currX;
 	prevY = currY;
 	prevTime = currTime;
-	prevSpeed = currSpeed;
 
 	currX = utm_msg->pose.pose.position.x;
 	currY = utm_msg->pose.pose.position.y;
 	currTime = utm_msg->header.stamp.sec + (1e-9 * utm_msg->header.stamp.nsec);
-
-	currSpeed = twist_msg->twist.twist.linear.x;
-
 }
 
 bool driveForward( std_srvs::Empty::Request &req, std_srvs::Empty::Response &resp)
 {
-	// Use message_filters to combine and sync two topics
-	ros::NodeHandle nh;
-	message_filters::Subscriber<nav_msgs::Odometry> utm_sub(nh, "odometry/utm", 1);
-	message_filters::Subscriber<geometry_msgs::TwistWithCovarianceStamped> twist_sub(nh, "base/cmd_vel", 1);
 
-	typedef message_filters::sync_policies::ApproximateTime<nav_msgs::Odometry, geometry_msgs::TwistWithCovarianceStamped> MySyncPolicy;
-	// ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(10)
-	message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), utm_sub, twist_sub);
-	sync.registerCallback(boost::bind(&gpsHeadingCallback, _1, _2));
+	ros::NodeHandle nh;
+
+  	ros::Subscriber sub_joint_command = nh.subscribe("odometry/utm", 1, gpsHeadingCallback);
 
 	// Initialize Imu publisher, which will hold the heading information calculated in the callBack
 	ros::Publisher imu_pub = nh.advertise<sensor_msgs::Imu>("gps/imu/data", 1, false);
 
 	// Start moving the robot at a constant velocity with a twist of 0.
-	ros::Publisher twist_pub = nh.advertise<geometry_msgs::Twist>("nav_vel", 1);
+	ros::Publisher twist_pub = nh.advertise<geometry_msgs::Twist>("nav_vel_heading", 1);
 	// Populate Twist message
 	geometry_msgs::Twist twist_msg;
 	twist_msg.linear.x =  forward_velocity; // Fill with constant linear velocity
 	twist_msg.angular.z = 0; // Fill with angular velocity		
-		
-	// Publish Twist message
-	twist_pub.publish(twist_msg);		
 
 	// Sleep to allow time for fix to be updated, HACK- FIX LATER
 	sleep(1);
@@ -184,10 +162,18 @@ bool driveForward( std_srvs::Empty::Request &req, std_srvs::Empty::Response &res
 	posQ->front = NULL;
 	posQ->back = NULL;
 
+	double start_time = ros::Time::now().toSec();
+	double max_time = 3 * sample_size / pub_rate;
 
 	// Collect data points until queue is full
-	while (posQ->size < sample_size)
+	ros::Rate r(pub_rate);
+	while ((posQ->size < sample_size) && ((ros::Time::now().toSec()) - start_time < max_time))
 	{
+		// Publish twist message
+		twist_pub.publish(twist_msg);
+
+		ROS_INFO_STREAM("Time running is: " << (ros::Time::now().toSec() - start_time));
+		ROS_INFO_STREAM("Max time to run is: " << max_time);
 		// Check that positions were updated
 		if (xCheck == currX || yCheck == currY)
 		{
@@ -199,11 +185,10 @@ bool driveForward( std_srvs::Empty::Request &req, std_srvs::Empty::Response &res
 		double xCheck = currX;
 		double yCheck = currY;
 
-
 		// Calculate distance between two coordinates
 		double dx = currX-prevX;
 		double dy = currY-prevY;
-		double dist = pow( dx*dx + dy*dy, 0.5);  // output in meters
+		double dist = pow(dx*dx + dy*dy, 0.5);  // output in meters
 		ROS_DEBUG("dist is: %05.16f", dist);
 
     	// Enqueue new position data onto the position queue
@@ -212,137 +197,93 @@ bool driveForward( std_srvs::Empty::Request &req, std_srvs::Empty::Response &res
         
 		ROS_DEBUG("Previous Location is: x: %05.10f, y: %05.10f", prevX, prevY);
 		ROS_DEBUG("Current Location is:  x: %05.10f, y: %05.10f", currX, prevY);
-
-    	// Calculate Average Heading from position Queue (simple average)
-    	if (posQ->size == sample_size) 
-    	{
-			fit_heading = bestFit(posQ);
-		}
-
-		ROS_DEBUG_STREAM("Line Fit Heading is " << fit_heading / toRadians);
-		// Check for robot moving forward or backwards!
-		if ((currSpeed < 0) && (prevSpeed < 0))
-		{
-			ROS_DEBUG_STREAM("Going in reverse!");
-			fit_heading = fmod((fit_heading - pi), 2.0*pi);
-		} else if (((currSpeed < 0) && (prevSpeed > 0)) || ((currSpeed > 0) && (prevSpeed < 0)))
-		{
-			ROS_DEBUG_STREAM("Different velocity directions for both points, can't update orientation!");
-
-			r.sleep();
-			ros::spinOnce();
-			continue;
-		}
-		 
-		// NEWEST ADDTION
-		// DELETE ALL NODES IN QUEUE IF TWIST IS LARGER THAN GIVEN VALUE
-		if (ang_velocity > 0.2) { 
-			ROS_DEBUG_STREAM("Angular Velocity is too large... Deleting Queue");
-			// delete queue to reset heading average
-			while (posQ->size > 0) {
-				deq(posQ);
-			}
-		} 
-
-		fit_heading = bestFit(posQ);
-
-
-	}
-
-				
 		
-		// Populate Imu message
-		if (posQ->size == sample_size)
-		{
-			sensor_msgs::Imu imu_msg;
-
-			imu_msg.header.frame_id = "GPS_link";
-			imu_msg.header.stamp = ros::Time::now();
-
-			geometry_msgs::Quaternion pose_quat = tf::createQuaternionMsgFromYaw(fit_heading);
-
-			imu_msg.orientation = pose_quat;
-
-			imu_msg.orientation_covariance[0] = 1e6;
-			imu_msg.orientation_covariance[4] = 1e6;
-			imu_msg.orientation_covariance[8] = 1e-2;
-
-			if (fabs(ros::Time::now().toSec() - currTime) < MAX_TIME)
-				{
-				imu_pub.publish(imu_msg);
-
-				ROS_DEBUG_STREAM("CURRENT POSITION QUEUE:");
-				list *cur2 = posQ->front;
-				
-				ROS_DEBUG_STREAM("posQ size is " << posQ->size);
-				for (int j = 1; j <= posQ->size; j++) 
-				{
-					ROS_DEBUG("%d:  x: %05.10f  y: %05.10f", j, cur2->x, cur2->y);
-					ROS_DEBUG_STREAM("Time: " << cur2->time);
-					cur2 = cur2->next;
-        		}
-
-    //     		ROS_INFO_STREAM("DELETING QUEUE!");
-
-				// // Free memory from the position queue
-				// list *cur = posQ->front;
-				// for (int i = 0; i < posQ->size; i++) 
-				// {
-				// 	ROS_INFO_STREAM("\tdeleting node number: " << i);
-				// 	list *temp = cur;
-				// 	cur = cur->next;
-				// 	delete temp;
-				// }
-				
-				// delete posQ;
-
-				// // Create Queue header for position data
-				// queue *posQ = new queue;
-				// posQ->size = 0;
-				// posQ->front = NULL;
-				// posQ->back = NULL;
-
-
-
-				}
-			else 
-			{
-				ROS_DEBUG_STREAM("Not publishing, heading not updated!");
-			}
-		}
-
-		// Update previous time with current and start loop over again
 		r.sleep();
 		ros::spinOnce();
+	}
 
+	// Populate and publish Imu message, stop robot
+	if ((posQ->size == sample_size) && ((start_time - ros::Time::now().toSec()) < max_time))
+	{
+    	// Calculate Average Heading from position Queue (linear regression)
+		fit_heading = bestFit(posQ);
+
+		// Populate and publish message
+		sensor_msgs::Imu imu_msg;
+
+		imu_msg.header.frame_id = "GPS_link";
+		imu_msg.header.stamp = ros::Time::now();
+
+		geometry_msgs::Quaternion pose_quat = tf::createQuaternionMsgFromYaw(fit_heading);
+
+		imu_msg.orientation = pose_quat;
+
+		imu_msg.orientation_covariance[0] = 1e6;
+		imu_msg.orientation_covariance[4] = 1e6;
+		imu_msg.orientation_covariance[8] = 1e-2;
+
+		imu_pub.publish(imu_msg);
+
+		ROS_INFO_STREAM("Publishing heading! Heading is " << fit_heading);
+
+		// Populate Twist message to stop robot
+		twist_msg.linear.x =  0;
+		twist_msg.angular.z = 0;	
+			
+		// Publish Twist message
+		ROS_INFO_STREAM("Stopping robot!");
+		twist_pub.publish(twist_msg);	
+
+	    // Free memory from the position queue
+	    list *cur = posQ->front;
+	    for (int i = 0; i < posQ->size; i++) 
+	    {
+	        list *temp = cur;
+	        cur = cur->next;
+	        delete temp;
+	    }
+	    delete posQ;
+
+		return true;
 	}
 
 
-	ROS_INFO_STREAM("ROS not OK!");
+	ROS_WARN_STREAM("Heading not published, check fix!");
 
-	
+	// Populate Twist message to stop robot
+	twist_msg.linear.x =  0;
+	twist_msg.angular.z = 0;	
+		
+	// Publish Twist message
+	ROS_INFO_STREAM("Stopping robot!");
+	double count = 0;
+	while (count < 1000)
+	{
+		twist_pub.publish(twist_msg);	
+		count += 1;
+	}
+
     // Free memory from the position queue
     list *cur = posQ->front;
-    for (int i = 0; i < posQ->size; i++) {
+    for (int i = 0; i < posQ->size; i++) 
+    {
         list *temp = cur;
         cur = cur->next;
         delete temp;
     }
     delete posQ;
-	return true;
 
+	return false;
 }
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "boost_avg_heading_from_gps_publisher");
+	ros::init(argc, argv, "boost_avg_heading_from_gps_service_publisher");
 
 	ros::NodeHandle n;
 
 	// Register service with the master
 	ros::ServiceServer server = n.advertiseService("acquire_Heading", &driveForward);
-
-	//
 
 	ros::Rate rate(4);
 	while (ros::ok())

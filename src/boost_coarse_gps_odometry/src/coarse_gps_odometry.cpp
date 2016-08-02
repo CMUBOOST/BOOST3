@@ -34,9 +34,9 @@ double prev_dy = 0.0;
 /*
  * Simpson Fields
  */
-double x_datum = 340634.710905;
-double y_datum = 3832788.98314;
-double z_datum = 222.819;
+// double x_datum = 340634.710905;
+// double y_datum = 3832788.98314;
+// double z_datum = 222.819;
 
 /*
  * The Cut
@@ -44,6 +44,13 @@ double z_datum = 222.819;
 // double x_datum = 589611.370198;
 // double y_datum = 4477380.87125;
 // double z_datum = 257.035;
+
+ /*
+  * Pee Dee Fields, Florence SC
+  */
+double x_datum = 614797.462364;
+double y_datum = 3797238.64635;
+double z_datum = 7.318;
 
 
 void coarseOdomCallback(const nav_msgs::Odometry::ConstPtr& trans_msg, const nav_msgs::Odometry::ConstPtr& orient_msg, const sensor_msgs::Imu::ConstPtr& imu_msg)

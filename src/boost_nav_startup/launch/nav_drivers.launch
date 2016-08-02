@@ -60,12 +60,18 @@
 	<!-- publish TF from imu_link to base_link -->
 		<node pkg="tf" type="static_transform_publisher" name="imu_tf_static_broadcaster" args="-0.475 0.038 0.2617 3.14159 3.14159 0 base_link imu_link 100" />
 
+	<!-- publish TF from mti_imu_link to base_link -->
+		<node pkg="tf" type="static_transform_publisher" name="mti_imu_tf_static_broadcaster" args="0.0889 0 0.914 0 0 0 base_link mti_imu_link 100" />
+
 	<!-- </group> -->
 
 
 <!-- Start boost_odom publisher -->
 
 	<node pkg="boost_odom" name="boost_odom_pub" type="boost_odom_pub" required="false" output="screen"/>
+
+<!-- Configure Xsens IMU -->
+	<node pkg="xsens_driver" type="mtdevice.py" name="mtdevice" args="-f 100 -m 2 -x 39"  output="screen" />
 
 
 </launch>

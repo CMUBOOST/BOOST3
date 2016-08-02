@@ -16,13 +16,8 @@ topics:
   topic   : joy_teleop/cmd_vel
   timeout : 0.5
   priority: 100
-# -
-#   name    : keyboard
-#   topic   : key_vel
-#   timeout : 0.5
-#   priority: 90
-# -
-#   name    : tablet
-#   topic   : tab_vel
-#   timeout : 0.5
-#   priority: 100
+-
+  name    : gps_heading
+  topic   : nav_vel_heading
+  timeout : 0.5
+  priority: 20

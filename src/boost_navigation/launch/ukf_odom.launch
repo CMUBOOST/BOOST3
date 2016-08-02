@@ -16,7 +16,7 @@
 
       <param name="frequency" value="40"/>
       <param name="sensor_timeout" value="0.1"/>
-      <param name="two_d_mode" value="true"/>
+      <param name="two_d_mode" value="false"/>
 
       <!-- Defaults to "map" if unspecified -->
       <param name="map_frame" value="map"/>
@@ -35,7 +35,7 @@
       <param name="odom0" value="wheel_encoder/odom"/>
       <param name="pose0" value="initialpose"/>
 
-      <param name="imu0" value="um7/imu/data"/>
+      <param name="imu0" value="mti/sensor/imu"/>
       <param name="imu1" value="gps/imu/data"/>
 
 
@@ -61,9 +61,9 @@
 
 
       <rosparam param="imu0_config">[false, false, false,
+                                     true, true, true,
                                      false, false, false,
                                      false, false, false,
-                                     false, false, true,
                                      false, false, false]</rosparam>
 
       <rosparam param="imu1_config">[false, false, false,
