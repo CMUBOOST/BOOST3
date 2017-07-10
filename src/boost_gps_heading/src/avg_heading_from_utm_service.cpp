@@ -30,7 +30,7 @@ double currTime = 0.0;
 int sample_size = 100;
 double pub_rate = 20;
 
-double forward_velocity = 0.1;
+double forward_velocity = 0.5;
 
 typedef struct list_node list;
 struct list_node {

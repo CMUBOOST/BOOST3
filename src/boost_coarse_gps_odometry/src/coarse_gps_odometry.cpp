@@ -32,11 +32,18 @@ double prev_dy = 0.0;
 
 // TODO - Make a ros param
 /*
- * Simpson Fields
+ * Simpson Fields 2016
  */
 // double x_datum = 340634.710905;
 // double y_datum = 3832788.98314;
 // double z_datum = 222.819;
+
+/*
+ * Simpson Fields 2017
+ */
+double x_datum = 340138.0;
+double y_datum = 3831523.0;
+double z_datum = 1227.5;
 
 /*
  * The Cut
@@ -48,9 +55,9 @@ double prev_dy = 0.0;
  /*
   * Pee Dee Fields, Florence SC
   */
-double x_datum = 614797.462364;
-double y_datum = 3797238.64635;
-double z_datum = 7.318;
+// double x_datum = 614797.462364;
+// double y_datum = 3797238.64635;
+// double z_datum = 7.318;
 
 
 void coarseOdomCallback(const nav_msgs::Odometry::ConstPtr& trans_msg, const nav_msgs::Odometry::ConstPtr& orient_msg, const sensor_msgs::Imu::ConstPtr& imu_msg)
@@ -60,34 +67,50 @@ void coarseOdomCallback(const nav_msgs::Odometry::ConstPtr& trans_msg, const nav
   // ROS_INFO_STREAM("Time difference of fix and imu topics is :" << dt);
 	
 	// trace gps receiver to base link using imu data
-	double acc_y = imu_msg->linear_acceleration.y;
-	double acc_z = imu_msg->linear_acceleration.z;
-	double tilt_angle = atan(acc_y / acc_z);
-	double dy = gps_height*sin(tilt_angle);
+	// double acc_y = -imu_msg->linear_acceleration.y;
+	// double acc_z = -imu_msg->linear_acceleration.z;
+	// double tilt_angle = atan(acc_y / acc_z);
+	// double dy = gps_height*sin(tilt_angle);
+
+  // Get roll and pitch from filtered IMU
+  double quat_x = imu_msg->orientation.x;
+  double quat_y = imu_msg->orientation.y;
+  double quat_z = imu_msg->orientation.z;
+  double quat_w = imu_msg->orientation.w;
+  tf::Quaternion q(quat_x, quat_y, quat_z, quat_w);
+  tf::Matrix3x3 m(q);
+  double rollImu, pitchImu, yawImu; // tilt angles
+  m.getRPY(rollImu, pitchImu, yawImu);
+
+
   double dt = fabs((imu_msg->header.stamp.sec + 1e-9 * imu_msg->header.stamp.nsec) - (trans_msg->header.stamp.sec + 1e-9 * trans_msg->header.stamp.nsec));
 
-  if (fabs(dy - prev_dy) > dy_max)
-  {
-    if (dy < 0) dy = -dy_max;
-    if (dy > 0) dy = dy_max;
-  }
-	ROS_DEBUG_STREAM("Tilt angle: " << tilt_angle * 180 / PI << "\tdy: " << dy << "\tdt: " << dt << "\tdelta dy: " << fabs(dy - prev_dy)); 
+  // if (fabs(dy - prev_dy) > dy_max)
+  // {
+  //   if (dy < 0) dy = -dy_max;
+  //   if (dy > 0) dy = dy_max;
+  // }
+	// ROS_INFO_STREAM("Tilt angle: " << tilt_angle * 180 / PI << "\tdy: " << dy << "\tdt: " << dt << "\tdelta dy: " << fabs(dy - prev_dy)); 
 	
-	double quat_x = orient_msg->pose.pose.orientation.x;
-	double quat_y = orient_msg->pose.pose.orientation.y;
-	double quat_z = orient_msg->pose.pose.orientation.z;
-	double quat_w = orient_msg->pose.pose.orientation.w;
-	tf::Quaternion q(quat_x, quat_y, quat_z, quat_w);
-	tf::Matrix3x3 m(q);
-	double roll, pitch, yaw; // tilt angles
-	m.getRPY(roll, pitch, yaw);
-	double heading = yaw; 
-	double adj_x = dy*sin(heading);
-	double adj_y = dy*cos(heading);	
-	// ROS_INFO_STREAM("Adj X: " << adj_x << "\tAdj Y: " << adj_y << "\n");	
-	// tf::TransformBroadcaster odom_broadcaster;
+	double quat_xOdom = orient_msg->pose.pose.orientation.x;
+	double quat_yOdom = orient_msg->pose.pose.orientation.y;
+	double quat_zOdom = orient_msg->pose.pose.orientation.z;
+	double quat_wOdom = orient_msg->pose.pose.orientation.w;
+	tf::Quaternion qOdom(quat_xOdom, quat_yOdom, quat_zOdom, quat_wOdom);
+	tf::Matrix3x3 mOdom(qOdom);
+	double rollOdom, pitchOdom, yawOdom; // tilt angles
+	mOdom.getRPY(rollOdom, pitchOdom, yawOdom);
+	double heading = yawOdom; 
+  ROS_INFO_STREAM("Roll: " << rollImu << "\tPitch: " << pitchImu << "\tYaw: " << yawImu << "\n");
+  ROS_INFO_STREAM("Heading: " << heading << "\n");
 
-	// nav_msgs::Odometry odom;
+  // Correct GPS for roll and pitch using yaw, in UTM coordinates
+	double adj_x = gps_height*sin(rollImu)*sin(heading);
+	double adj_y = gps_height*sin(pitchImu)*cos(heading);	
+	ROS_INFO_STREAM("Adj X: " << adj_x << "\tAdj Y: " << adj_y << "\n");	
+
+
+  // odom is a global variable
 	odom.header.stamp = trans_msg->header.stamp;
 	odom.header.frame_id = frame_id;
 	odom.child_frame_id = child_frame_id;
@@ -130,12 +153,12 @@ void coarseOdomCallback(const nav_msgs::Odometry::ConstPtr& trans_msg, const nav
 
     odom.twist = orient_msg->twist;
 
-	// ROS_INFO_STREAM("Publishing odom!");
- //    odom_pub.publish(odom);
+	ROS_DEBUG_STREAM("Publishing odom!");
+    odom_pub.publish(odom);
 
 
     // Publish the transform over tf
-    // geometry_msgs::TransformStamped odom_tf;
+    // odom_tf is a global variable
     odom_tf.header.stamp = ros::Time::now();
     odom_tf.header.frame_id = frame_id;
     odom_tf.child_frame_id = child_frame_id;
@@ -146,12 +169,11 @@ void coarseOdomCallback(const nav_msgs::Odometry::ConstPtr& trans_msg, const nav
     ROS_DEBUG("Translation tf is x: %010.10f,  y: %010.10f, z: %010.10f", odom_tf.transform.translation.x, odom_tf.transform.translation.y, odom_tf.transform.translation.z);
     odom_tf.transform.rotation = orient_msg->pose.pose.orientation;
 
-    prev_dy = dy;
+    // prev_dy = dy;
 
     // send the transform
-
-	// ROS_INFO_STREAM("Publishing tf!");
- //    odom_broadcaster.sendTransform(odom_tf);
+	  // ROS_INFO_STREAM("Publishing tf!");
+   //  odom_broadcaster.sendTransform(odom_tf);
 
 	return;
 }
@@ -175,7 +197,7 @@ int main(int argc, char **argv)
 
 	message_filters::Subscriber<nav_msgs::Odometry> utm_sub(nh, "odometry/utm", 10);
 	message_filters::Subscriber<nav_msgs::Odometry> orient_sub(nh, "odometry/filtered_imu_encoders", 10);
-	message_filters::Subscriber<sensor_msgs::Imu> imu_sub(nh, "um7/imu/data", 10);
+	message_filters::Subscriber<sensor_msgs::Imu> imu_sub(nh, "mti/sensor/imu", 10);
 	
 	typedef message_filters::sync_policies::ApproximateTime<nav_msgs::Odometry, nav_msgs::Odometry, sensor_msgs::Imu> MySyncPolicy;
 
@@ -198,7 +220,6 @@ int main(int argc, char **argv)
 		last_time = odom.header.stamp;
 		ros::spinOnce();   
 		// Check for not same topic
-
 
     	if (last_time != odom.header.stamp)
     	{

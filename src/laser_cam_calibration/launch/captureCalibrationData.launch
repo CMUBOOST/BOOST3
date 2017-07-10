@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<launch>
+
+<!-- Start extract_images node, with image_view, see http://wiki.ros.org/image_view -->
+  <node pkg="image_view" name="image_saver" type="image_saver" required="true" output="screen" >
+    <param name="filename_format" value="../Vision_Project/image_data_12-11-16/calibrationImage%04i.png" />
+    <param name="save_all_image" value="False" />
+    <remap from="image" to="/camera1/image_rect_color"/>
+  </node>
+
+</launch>

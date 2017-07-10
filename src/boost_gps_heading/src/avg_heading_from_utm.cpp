@@ -34,8 +34,8 @@ double prevTime = 0.0;
 double currTime = 0.0;
 double prevSpeed = 0.0;
 double currSpeed = 0.0;
-int sample_size = 20;
-float pubRate = 20;
+int sample_size = 60;  // 20
+float pubRate = 20;  // 20
 double ang_velocity; 
 
 
@@ -344,6 +344,7 @@ int main(int argc, char **argv)
 				{
 				imu_pub.publish(imu_msg);
 
+				ROS_DEBUG_STREAM("Publishing IMU message on /gps/imu/data!");
 				ROS_DEBUG_STREAM("CURRENT POSITION QUEUE:");
 				list *cur2 = posQ->front;
 				
@@ -380,7 +381,7 @@ int main(int argc, char **argv)
 				}
 			else 
 			{
-				ROS_DEBUG_STREAM("Not publishing, heading not updated!");
+				ROS_DEBUG_STREAM("Not publishing, heading not updated!" << fabs(ros::Time::now().toSec() - currTime));
 			}
 		}
 

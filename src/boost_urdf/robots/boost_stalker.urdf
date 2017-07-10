@@ -386,7 +386,7 @@
       <material
         name="">
         <color
-          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+          rgba="1 0 0 1" />
       </material>
     </visual>
     <collision>
@@ -792,11 +792,12 @@
     <limit effort="400.0" lower="-1" upper="0" velocity="0.1" />
     <dynamics damping="100.0" />
   </joint>
+
   <link
     name="arm_pan1_link">
     <inertial>
       <origin
-        xyz="0.180038341849215 0.0064796581882125 0.000517581092536579"
+        xyz="0.22 0.0064796581882125 0.000517581092536579"
         rpy="0 0 0" />
       <mass
         value="0.734550421195934" />
@@ -819,7 +820,7 @@
       <material
         name="">
         <color
-          rgba="0.890196078431373 0.909803921568627 0.925490196078431 1" />
+          rgba="1 0 0 1" />
       </material>
     </visual>
     <collision>
@@ -840,7 +841,7 @@
     name="X-00021"
     type="revolute">
     <origin
-      xyz="0.0769999999920841 0.115750000014332 0.00200000000075296"
+      xyz="0.11 0.115750000014332 0.00200000000075296"
       py="0 0 0" />
     <parent
       link="arm_carriage_link" />
@@ -850,6 +851,7 @@
       xyz="0 1 0" />
     <limit effort="25" lower="-2" upper="2.27" velocity="2.27" />
   </joint>
+
   <link
     name="arm_pan2_link">
     <inertial>
@@ -877,7 +879,7 @@
       <material
         name="">
         <color
-          rgba="0.890196078431373 0.909803921568627 0.925490196078431 1" />
+          rgba="1 0 0 1" />
       </material>
     </visual>
     <collision>
@@ -908,6 +910,7 @@
       xyz="0 1 0" />
     <limit effort="25" lower="-2" upper="2.27" velocity="2.27" />
   </joint>
+
   <link
     name="right_finger_link">
     <inertial>
@@ -1493,4 +1496,44 @@
     <axis
       xyz="0 0 0" />
   </joint>
+
+  <!--link
+    name="multisense/head">
+    <visual>
+      <origin
+        xyz="-0.03 -0.0625 -0.032" 
+        rpy="1.57079632679 0 1.57079632679" />
+      <geometry>
+        <mesh
+          filename="package://boost_urdf/boost_stalker/meshes/multisense.DAE" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0 0 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://boost_urdf/boost_stalker/meshes/multisense.STL" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="multisense_joint"
+    type="fixed">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="top_plate_link" />
+    <child
+      link="multisense/head" />
+    <axis
+      xyz="0 0 0" />
+  </joint-->
 </robot>

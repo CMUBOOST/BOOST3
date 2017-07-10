@@ -21,3 +21,8 @@ topics:
   topic   : nav_vel_heading
   timeout : 0.5
   priority: 20
+-
+  name    : camera_stitch
+  topic   : camera_stitch/cmd_vel
+  timeout : 0.5
+  priority: 30

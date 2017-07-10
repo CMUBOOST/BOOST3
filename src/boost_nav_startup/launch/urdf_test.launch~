@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<launch>
+
+<!-- Start twist_mux node -->
+	<arg name="joy_vel_in"  default="input_joy/cmd_vel"/>
+	<arg name="joy_vel_out" default="joy_vel"/>
+
+	<arg name="cmd_vel_out" default="twist_mux/cmd_vel"/>
+
+	<arg name="config_locks"  default="$(find boost_config)/config/twist_mux/twist_mux_locks.yaml"/>
+	<arg name="config_topics" default="$(find boost_config)/config/twist_mux/twist_mux_topics.yaml"/>
+	<!-- <arg name="config_joy" default="$(find boost_config)/config/twist_mux/joystick.yaml"/> -->
+
+	<node pkg="twist_mux" type="twist_mux" name="twist_mux" output="screen">
+		<remap from="cmd_vel_out" to="$(arg cmd_vel_out)"/>
+		<rosparam file="$(arg config_locks)"  command="load"/>
+		<rosparam file="$(arg config_topics)" command="load"/>
+	</node>
+
+<!-- Launch hebi teleop node -->
+	<node pkg="hebi" name="stalker_base_motor_commands" type="stalker_base_motor_commands" required="true" output="screen" >
+		<param name="publish_frequency" value="50" />
+	</node>
+
+
+	<!-- <group ns="robot_dsc"> -->
+	<!-- urdf xml robot description loaded on the Parameter Server-->
+		 <param name="robot_description" textfile="$(find boost_urdf)/robots/boost_stalker.urdf" />
+
+	<!-- publish all the frames to TF -->
+		<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" required="true" output="screen">
+
+			<param name="publish_frequency" value="50"/> <!-- Hz -->
+		</node>
+
+	<!-- publish TF from camera_tof to the 3vistor joint in urdf -->
+		<node pkg="tf" type="static_transform_publisher" name="tof_tf_static_broadcaster" args="0 0 0 3.14159 -1.570795 0 tvistor_link camera_tof 100" />
+
+	<!-- publish TF from laser link to front_camera -->
+		<node pkg="tf" type="static_transform_publisher" name="lrf_tf_static_broadcaster" args="-0.046 0.114 0 0 0 -1.570795 front_camera_link sick_561_laser 100" />
+
+
+
+
+</launch>

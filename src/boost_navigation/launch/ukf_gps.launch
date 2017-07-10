@@ -72,7 +72,8 @@
       <!-- odometry/utm is output of utm_odometry_node, with only pose populated. Covariance for X and Y is ~1 when good signal (HDOP^2) -->
       <param name="odom0" value="odometry/coarse_gps"/>      
       <!-- <param name="imu0" value="um7/imu/data"/> -->
-      <param name="imu0" value="gps/imu/data"/>
+      <param name="imu0" value="mti/sensor/imu"/> 
+      <param name="imu1" value="gps/imu/data"/>
       <!-- <param name="imu2" value="hebi/rl_imu/data"/> -->
       <!-- <param name="imu3" value="hebi/fr_imu/data"/> -->
       <!-- <param name="imu4" value="hebi/rr_imu/data"/> -->
@@ -109,11 +110,11 @@
                                      false, false,  false,
                                      false, false,  false]</rosparam>
 
-<!--       <rosparam param="imu1_config">[false, false, false,
+      <rosparam param="imu1_config">[false, false, false,
                                      false, false, true,
                                      false, false, false,
                                      false, false, false,
-                                     false, false, false]</rosparam> -->
+                                     false, false, false]</rosparam>
 
      <!--  <rosparam param="imu2_config">[false, false, false,
                                      false, false, false,

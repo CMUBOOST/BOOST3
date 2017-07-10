@@ -117,7 +117,19 @@ include_directories(
 #)
 
 ## Declare a cpp executable
-add_executable(stalker_base_motor_commands src/stalker_base_motor_commands.cpp
+#add_executable(stalker_base_motor_commands src/stalker_base_motor_commands.cpp
+#  include/hebi/cpp/command.cpp
+#  include/hebi/cpp/feedback.cpp
+#  include/hebi/cpp/info.cpp
+#  include/hebi/cpp/module.cpp
+#  include/hebi/cpp/group_command.cpp
+#  include/hebi/cpp/group_feedback.cpp
+#  include/hebi/cpp/group_info.cpp
+#  include/hebi/cpp/group.cpp
+#  include/hebi/cpp/lookup.cpp
+#)
+
+add_library(hebi_cpp_lib OBJECT
   include/hebi/cpp/command.cpp
   include/hebi/cpp/feedback.cpp
   include/hebi/cpp/info.cpp
@@ -129,11 +141,15 @@ add_executable(stalker_base_motor_commands src/stalker_base_motor_commands.cpp
   include/hebi/cpp/lookup.cpp
 )
 
+add_executable(stalker_base_motor_commands src/stalker_base_motor_commands.cpp $<TARGET_OBJECTS:hebi_cpp_lib>)
+add_executable(arm_stow_initial src/arm_stow_initial.cpp $<TARGET_OBJECTS:hebi_cpp_lib>)
+
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(hebi_node hebi_generate_messages_cpp)
 #add_dependencies(group_node hebi_generate_messages_cpp)
 add_dependencies(stalker_base_motor_commands hebi_generate_messages_cpp)
+add_dependencies(arm_stow_initial hebi_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(hebi_node
@@ -141,6 +157,7 @@ add_dependencies(stalker_base_motor_commands hebi_generate_messages_cpp)
 # )
 #target_link_libraries(group_node ${catkin_LIBRARIES} ${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/lib/libhebi.so)
 target_link_libraries(stalker_base_motor_commands ${catkin_LIBRARIES} ${CMAKE_CURRENT_SOURCE_DIR}/lib/libhebi.so m pthread)
+target_link_libraries(arm_stow_initial ${catkin_LIBRARIES} ${CMAKE_CURRENT_SOURCE_DIR}/lib/libhebi.so m pthread)
 
 #############
 ## Install ##

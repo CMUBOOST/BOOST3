@@ -111,8 +111,8 @@ int main(int argc, char **argv)
 	ros::Subscriber waypoint_sub = nh.subscribe("gps/waypoints", 1, waypointCallback);
 
 	ros::NodeHandle priv_node("~");
-	priv_node.param<double>("lookahead_distance", lookahead_distance, 1.0);
-	priv_node.param<double>("forward_velocity", forward_velocity, 0.25);
+	priv_node.param<double>("lookahead_distance", lookahead_distance, 1);
+	priv_node.param<double>("forward_velocity", forward_velocity, 1);
 
 	// Initialize twist publisher, which will hold the velcity command information calculated in the callBack
 	ros::Publisher twist_pub = nh.advertise<geometry_msgs::Twist>("nav_vel", 1);

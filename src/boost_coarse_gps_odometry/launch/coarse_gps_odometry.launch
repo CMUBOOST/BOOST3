@@ -19,16 +19,77 @@
 
 
 	<!-- Launch coarse_gps_odometry node, which combines location in UTM coordinates with absolute orientation from robot_localization node above -->
-	<node pkg="boost_coarse_gps_odometry" type="boost_coarse_gps_odometry_node" name="coarse_gps_odometry_node" required="true" >
-		<param name="publish_tf" value="true" />
+		<node pkg="boost_coarse_gps_odometry" type="boost_coarse_gps_odometry_node" name="coarse_gps_odometry_node" required="true" output="screen">
+	<param name="publish_tf" value="false" />
 	</node>
 
 	<!-- Launch fine_ukf_odometery node, which fuses twist from ukf_odom with absolute position of odometry/coarse_gps -->
 	<!-- <include file="$(find boost_navigation)/launch/gps_odom_fusion.launch"/> -->
 
+
+
+
 	<!-- Launch Laser Scan Assembler -->
-  <node type="laser_scan_assembler" pkg="laser_assembler" name="my_assembler">
-	<param name="max_scans" type="int" value="1000" />
-	<param name="fixed_frame" type="string" value="odom/ukf_dead_reckoning" />
-  </node>
+	<node type="laser_scan_assembler" pkg="laser_assembler" name="my_assembler">
+		<remap from="scan" to="scan/hokuyo" />
+		<param name="max_scans" type="int" value="1000" />
+		<param name="fixed_frame" type="string" value="/odom/ukf_dead_reckoning" />
+	</node>
+
+	<!-- Launch pointcloud processor -->
+	<node pkg="boost_laser_processing" type="voxelize_and_plane_segment" name="voxelize_and_plane_segment" respawn="true" output="screen" />
+
+	<!-- Launch laser_assembler periodic snapshotter -->
+	<node pkg="laser_assembler" type="periodic_snapshotter" name="periodic_snapshotter" respawn="true" />
+
+
+
+
+	<!-- Launch image rotaters -->
+<!-- 	<node pkg="image_rotate" type="image_rotate" name="front_camera_rotater" respawn="true" >
+	  	<remap from="image" to="sick_3vistort_driver/intensity" />
+	  	<param name="target_frame_id" value="camera_tof" />
+		<param name="target_x" value="-1.0" />
+		<param name="target_y" value="0" />
+		<param name="target_z" value="0" />
+	  	<param name="source_frame_id" value="camera_tof" />
+		<param name="source_x" value="1.0" />
+		<param name="source_y" value="0" />
+		<param name="source_z" value="0" />
+		<param name="use_camera_info" value="true" />
+		<param name="output_image_size" value="2" />
+		<remap from="rotated/image" to="sick_3vistort_driver/intensity/rotated" />
+	</node> -->
+
+<!-- 
+	<node pkg="image_rotate" type="image_rotate" name="front_camera_rotater" respawn="true" >
+	  	<remap from="image" to="sick_3vistort_driver/intensity" />
+	  	<param name="target_frame_id" value="camera_tof" />
+		<param name="target_x" value="0" />
+		<param name="target_y" value="1.0" />
+		<param name="target_z" value="0" />
+	  	<param name="source_frame_id" value="camera_tof" />
+		<param name="source_x" value="1.0" />
+		<param name="source_y" value="0" />
+		<param name="source_z" value="0" />
+		<param name="use_camera_info" value="true" />
+		<param name="output_image_size" value="1" />
+		<remap from="rotated/image" to="sick_3vistort_driver/intensity/rotated" />
+	</node> -->
+
+	<!-- Launch image rotaters -->
+<!-- 	<node pkg="image_rotate" type="image_rotate" name="sick_tof_depth_rotater" respawn="true" >
+	  	<remap from="image" to="sick_3vistort_driver/depth" />
+	  	<param name="target_frame_id" value="/tof_camera" />
+		<param name="target_x" value="0" />
+		<param name="target_y" value="1.0" />
+		<param name="target_z" value="0" />
+	  	<param name="source_frame_id" value="/tof_camera" />
+		<param name="source_x" value="1.0" />
+		<param name="source_y" value="0" />
+		<param name="source_z" value="0" />
+		<param name="use_camera_info" value="true" />
+		<remap from="rotated/image" to="/sick_3vistort_driver/depth/rotated" />
+	</node> -->
+
 </launch>

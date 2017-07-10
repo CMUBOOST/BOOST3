@@ -17,13 +17,13 @@
 
 #include "sensor_msgs/Imu.h"
 
-const float MAX_RAW_VELOCITY = 9; // radians per second
+const float MAX_RAW_VELOCITY = 18; // radians per second, was 9
 
 // const float MAX_RAW_VELOCITY = 9.35;
 const float WHEELBASE = 0.6985; // meters
 const float TIRE_RADIUS = 0.18415; //meters
 
-const float MAX_LIN_VEL = 1.0; // m/s
+const float MAX_LIN_VEL = 1.0; // m/s, was 1.0
 const float MAX_ANG_VEL = 0.4; // m/s
  
 
@@ -31,7 +31,7 @@ const float MAX_ANG_VEL = 0.4; // m/s
 const float TRACK = 0.43457; // m
 const float YAW_RATE_MULTIPLIER = 0.255; 
 
-const int ARM_GEAR_RATIO = 100; //TODO: UPDATE THIS NUMBER
+const int ARM_GEAR_RATIO = 48.33; //TODO: UPDATE THIS NUMBER
 
 /**
  * A function to publish an IMU msg
@@ -123,11 +123,14 @@ int sendWheelSkidCommands(double velocityLeft, double velocityRight)
     wheel_rear_right = 1 * velocityRight;
   }
 
-  hebi::GroupCommand cmd(4);
+  hebi::GroupCommand cmd(7);
   cmd[0].actuator().velocity().set(wheel_front_left);
   cmd[1].actuator().velocity().set(wheel_rear_left);
   cmd[2].actuator().velocity().set(wheel_front_right);
   cmd[3].actuator().velocity().set(wheel_rear_right);
+  cmd[4].actuator().velocity().set(NAN);
+  cmd[5].actuator().velocity().set(NAN);
+  cmd[6].actuator().velocity().set(NAN);
   group_g->sendCommand(cmd);
   return(1);
 }
@@ -282,10 +285,13 @@ int main(int argc, char **argv)
 
   // Get the names of non-fixed joints in the model:
   
-  // std::vector<std::string> joint_names = {"Front_Left_Drive", "Rear_Left_Drive", "Front_Right_Drive", "Rear_Right_Drive", "X-00021", "X-00022", "X-00023"};
-  // std::vector<std::string> family_names = {"BOOST", "BOOST", "BOOST", "BOOST", "BOOST", "BOOST", "BOOST"};
-  std::vector<std::string> joint_names = {"Front_Left_Drive", "Rear_Left_Drive", "Front_Right_Drive", "Rear_Right_Drive"};
-  std::vector<std::string> family_names = {"BOOST", "BOOST", "BOOST", "BOOST"};
+  std::vector<std::string> joint_names = {"Front_Left_Drive", "Rear_Left_Drive", "Front_Right_Drive", "Rear_Right_Drive", "X-00021", "X-00022", "X-00023"};
+  std::vector<std::string> family_names = {"BOOST", "BOOST", "BOOST", "BOOST", "BOOST-ARM", "BOOST-ARM", "BOOST-ARM"};
+  //std::vector<std::string> joint_names = {"Front_Left_Drive", "Rear_Left_Drive", "Front_Right_Drive", "Rear_Right_Drive"};
+  //std::vector<std::string> family_names = {"BOOST", "BOOST", "BOOST", "BOOST"};
+  // std::vector<std::string> joint_names = {"Front_Left_Drive", "Rear_Left_Drive", "Front_Right_Drive"};
+  // std::vector<std::string> family_names = {"BOOST", "BOOST", "BOOST"};
+
 
   /**
    * The advertise() function is how you tell ROS that you want to

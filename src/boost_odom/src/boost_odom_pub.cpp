@@ -75,7 +75,7 @@ int main(int argc, char **argv)
   ros::Subscriber sub_joint_command = n.subscribe("joint_states", 1, jointstateCallback);
 
   // Sleep to allow time for joint_states to be updated, particularly position of joints, necessary?
-  sleep(5);  
+  sleep(8);  
   ros::spinOnce();
 
   // for (int i = 0; i < 4; i++)

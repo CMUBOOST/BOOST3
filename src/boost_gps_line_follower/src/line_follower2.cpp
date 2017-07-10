@@ -124,16 +124,16 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr& odom_msg)
 		printf("n_x = %0.6f\tn_y = %0.6f\n", n[0], n[1]);
 		printf("e_x = %0.6f\te_y = %0.6f\n", e[0], e[1]);
 		printf("l_x = %0.6f\tl_y = %0.6f\n", l[0], l[1]);
-		ROS_INFO_STREAM("h x l =   " << h_cross_l);
-		ROS_INFO_STREAM("Heading = " << heading << ",\t" << heading*180/pi);
-		ROS_INFO_STREAM("Lookvect = " << atan2(l[1],l[0]) << ",\t" << atan2(l[1],l[0])*180/pi);
-		ROS_INFO_STREAM("N vector = " << atan2(n[1], n[0]) << ",\t" << atan2(n[1],n[0])*180/pi);
-		ROS_INFO_STREAM("E mag =   " << e_mag);
-		ROS_INFO_STREAM("Alpha =   " << alpha);
+		ROS_DEBUG_STREAM("h x l =   " << h_cross_l);
+		ROS_DEBUG_STREAM("Heading = " << heading << ",\t" << heading*180/pi);
+		ROS_DEBUG_STREAM("Lookvect = " << atan2(l[1],l[0]) << ",\t" << atan2(l[1],l[0])*180/pi);
+		ROS_DEBUG_STREAM("N vector = " << atan2(n[1], n[0]) << ",\t" << atan2(n[1],n[0])*180/pi);
+		ROS_DEBUG_STREAM("E mag =   " << e_mag);
+		ROS_DEBUG_STREAM("Alpha =   " << alpha);
 		// ROS_INFO_STREAM("Beta =    " << beta);
 		// ROS_INFO_STREAM("Phi =     " << phi);
-		ROS_INFO_STREAM("Theta =   " << theta << ",\t" << theta*180/pi);
-		ROS_INFO_STREAM("Omega =   " << omega << "\n");
+		ROS_DEBUG_STREAM("Theta =   " << theta << ",\t" << theta*180/pi);
+		ROS_DEBUG_STREAM("Omega =   " << omega << "\n");
 		
 		prevTime = currTime;
 		currTime = odom_msg->header.stamp.sec + (1e-9 * odom_msg->header.stamp.nsec);
@@ -142,7 +142,7 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr& odom_msg)
 	}
 	else 
 	{
-		ROS_INFO_STREAM("Haven't gotten a waypoint yet!");
+		ROS_DEBUG_STREAM("Haven't gotten a waypoint yet!");
 		return;
 	}
 }
@@ -163,7 +163,7 @@ int main(int argc, char **argv)
 
 	ros::NodeHandle priv_node("~");
 	priv_node.param<double>("lookahead_distance", lookahead_distance, 3);
-	priv_node.param<double>("forward_velocity", forward_velocity, 0.5);
+	priv_node.param<double>("forward_velocity", forward_velocity, 0.3);
 
 	// Initialize twist publisher, which will hold the velcity command information calculated in the callBack
 	ros::Publisher twist_pub = nh.advertise<geometry_msgs::Twist>("nav_vel", 1);
@@ -182,7 +182,7 @@ int main(int argc, char **argv)
 
 		if (!waypointFlag)
 		{
-			ROS_INFO_STREAM("Waypoint not set yet!");
+			ROS_DEBUG_STREAM("Waypoint not set yet!");
 
 			r.sleep();
 			ros::spinOnce();

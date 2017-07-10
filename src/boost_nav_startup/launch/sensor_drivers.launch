@@ -34,11 +34,14 @@
 		<remap from="scan" to="scan/hokuyo" />
 		<param name="frame_id" value="hokuyo" />
 	</node> -->
+	<!-- BROKEN =() -->
 
 <!-- Publish TF for Hokuyo node -->
-	<node pkg="tf" type="static_transform_publisher" name="hokuyo_tf_static_broadcaster" args="-0.14478 0.035 1.5875 3.14159 0.5662063 0 base_link hokuyo 100" />
+<!-- 	<node pkg="tf" type="static_transform_publisher" name="hokuyo_tf_static_broadcaster" args="-0.09525 0.0 1.994 3.14159 0.606708 0 base_link hokuyo 100" /> -->
+	<node pkg="tf" type="static_transform_publisher" name="hokuyo_tf_static_broadcaster" args="-0.09525 0.0 1.994 3.14159 0.62 0 base_link hokuyo 100" />
 
-<!-- Start xsens driver -->
+<!-- Configure Xsens IMU -->
+	<!-- <node pkg="xsens_driver" type="mtdevice.py" name="mtdevice" args="-f 100 -m 2 -x 42"  output="screen" /> -->
 <!-- 	<node pkg="xsens_driver" type="mtdevice.py" name="mtdevice.py" args="-f 100 -m 3 -x 39"  output="screen" /> -->
 
 	<node pkg="xsens_driver" type="mtnode.py" name="mtnode" respawn="true" output="screen" >

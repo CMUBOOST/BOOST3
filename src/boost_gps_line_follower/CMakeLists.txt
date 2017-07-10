@@ -134,6 +134,7 @@ include_directories(
 ## Declare a C++ executable
 add_executable(boost_gps_line_follower_node src/line_follower.cpp)
 add_executable(boost_gps_line_follower_node2 src/line_follower2.cpp)
+add_executable(publishArray src/publishArray.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -146,6 +147,11 @@ target_link_libraries(boost_gps_line_follower_node
 )
 
 target_link_libraries(boost_gps_line_follower_node2
+   ${catkin_LIBRARIES}
+   ${Boost_LIBRARIES}
+)
+
+target_link_libraries(publishArray
    ${catkin_LIBRARIES}
    ${Boost_LIBRARIES}
 )

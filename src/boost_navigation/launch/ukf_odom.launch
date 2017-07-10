@@ -35,8 +35,10 @@
       <param name="odom0" value="wheel_encoder/odom"/>
       <param name="pose0" value="initialpose"/>
 
-      <param name="imu0" value="mti/sensor/imu"/>
-      <param name="imu1" value="gps/imu/data"/>
+      <!-- <param name="imu0" value="mti/sensor/imu"/> -->
+      <param name="imu0" value="um7/imu/data"/>
+
+      <!-- <param name="imu1" value="gps/imu/data"/> -->
 
 
 
@@ -65,12 +67,12 @@
                                      false, false, false,
                                      false, false, false,
                                      false, false, false]</rosparam>
-
+<!-- 
       <rosparam param="imu1_config">[false, false, false,
                                      false, false, true,
                                      false, false, false,
                                      false, false,  false,
-                                     false, false,  false]</rosparam>
+                                     false, false,  false]</rosparam> -->
                                                                          
 
       <param name="odom0_differential" value="false"/>
@@ -78,7 +80,7 @@
       <param name="imu0_differential" value="false"/>
       <param name="imu1_differential" value="false"/>
 
-      <param name="odom0_relative" value="false"/>
+      <param name="odom0_relative" value="true"/>
       <param name="pose0_relative" value="false"/>
       <param name="imu0_relative" value="false"/>
       <param name="imu1_relative" value="false"/>
@@ -95,7 +97,7 @@
                                                   0,    0,    0.06, 0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
                                                   0,    0,    0,    0.03, 0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
                                                   0,    0,    0,    0,    0.03, 0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                                                  0,    0,    0,    0,    0,    1e1,  0,     0,     0,    0,    0,    0,    0,    0,    0,
+                                                  0,    0,    0,    0,    0,    1e0,  0,     0,     0,    0,    0,    0,    0,    0,    0,
                                                   0,    0,    0,    0,    0,    0,    1.0,   0,     0,    0,    0,    0,    0,    0,    0,
                                                   0,    0,    0,    0,    0,    0,    0,     1.0,   0,    0,    0,    0,    0,    0,    0,
                                                   0,    0,    0,    0,    0,    0,    0,     0,     0.04, 0,    0,    0,    0,    0,    0,
@@ -112,10 +114,10 @@
            z, roll, pitch, yaw, vx, vy, vz, vroll, vpitch, vyaw, ax, ay, az. Defaults to the matrix below if unspecified. -->
            <rosparam param="initial_estimate_covariance">[1e-3,  0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
                                                           0,    1e-3,  0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
-                                                          0,    0,    1e-9, 0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
-                                                          0,    0,    0,    1e-9, 0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
-                                                          0,    0,    0,    0,    1e-9, 0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
-                                                          0,    0,    0,    0,    0,    1e-9, 0,    0,    0,    0,     0,     0,     0,    0,    0,
+                                                          0,    0,    1e3,  0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
+                                                          0,    0,    0,    1e6, 0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
+                                                          0,    0,    0,    0,    1e6, 0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
+                                                          0,    0,    0,    0,    0,    1e6, 0,    0,    0,    0,     0,     0,     0,    0,    0,
                                                           0,    0,    0,    0,    0,    0,    1e3,  0,    0,    0,     0,     0,     0,    0,    0,
                                                           0,    0,    0,    0,    0,    0,    0,    1e3,  0,    0,     0,     0,     0,    0,    0,
                                                           0,    0,    0,    0,    0,    0,    0,    0,    1e-9, 0,     0,     0,     0,    0,    0,
