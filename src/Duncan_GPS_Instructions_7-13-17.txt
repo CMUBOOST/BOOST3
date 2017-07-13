@@ -1,0 +1,30 @@
+1. Run the following launch files:
+
+	roslaunch boost_nav_startup nav_drivers.launch
+	roslaunch boost_nav_startup sensor_drivers.launch
+
+2. Ensure GPS is receiving RTK correction signals:
+
+	rostopic echo /fix
+
+	a. Status should be 2. If it isn't, move within LoS of the barn (i.e. on the hill next to the corn plots) and check again. If it still isn't receiving RTK signals, call or text me and we can troubleshoot it together. 
+
+3. Run the following node
+
+	rosrun boost_nav_startup gps_point_collector
+
+4. Navigate up and down all rows with the robot. 
+
+	a. At the start, center and end of each row, hold the Start and Back button on the Xbox controller. This will write the current GPS coordinates to a text file on the desktop called 'gpsDataPoints.csv'. 
+	
+	b. If you stop and restart the node, a new header row will be appended to the file, nothing should be overwritten.
+
+	c. Determining the start and end of each row will be difficult, use your best judgement. With plots where most of the seeds have emerged, place the center of the robot (where the GPS mast is) next to the first emerged plant. With plots where there aren't many emerged plants, use the nearest healthy adjacent plot to position the robot. 
+
+	d. Determining the center of the row will be difficult as well. Do your best, but don't spend too much time trying to find it. 
+
+5. At the start and end of each row, drive about 5 feet outside of the last plot and store a GPS point.
+
+6. Send me (tmuellersim@cmu.edu) the text file when you're done. You can do this back at the barn if you want. 
+
+7. You may want to test the 'gps_point_collector' node back by the barn. It works on my machine, but there may be some differences between machines that may cause problems.

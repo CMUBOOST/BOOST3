@@ -14,7 +14,7 @@
 std::ofstream gpsPointsFile;
 std::ofstream fs;
 // Create a name for file output
-std::string filename = "/home/tim/Desktop/gpsDataPoints.csv";
+std::string filename = "/home/boost-3/Desktop/gpsDataPoints.csv";
 
 
 // Initialize flag for button state

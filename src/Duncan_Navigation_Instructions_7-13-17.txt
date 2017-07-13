@@ -1,0 +1,31 @@
+1. Run the following launch files:
+
+	roslaunch boost_nav_startup nav_drivers.launch
+	roslaunch boost_nav_startup sensor_drivers.launch
+	roslaunch boost_nav_startup perception_startup.launch
+
+2. Ensure front facing camera is publishing images:
+
+	rosrun image_view image_view image:=/camera1/image_rect_color
+
+3. Kill the image_view node
+
+4. Position the robot near the start of a row of corn that has little to no weeds in the ranges between plots. Also wait for the sun to go behind clouds if its partly cloudy.
+
+5. Hit the e-stop
+
+6. Run the following node
+
+	boost_nav_vision nav_3vistor_node
+
+7. Record all the topics to some location on the computer. The bag file will be saved to the current working directory (pwd).
+
+	rosbag record -a
+
+8. Pull the e-stop, and let the robot drive itself through the corn. Be ready with the joystick to stop the robot if it is going to strike the rows. 
+
+9. At the end of several plots, push the e-stop and kill the rosbag record terminal
+
+10. Repeat steps 4-9 several times. Write down any interesting behaviors you may see it performing. 
+
+11. Have Anjana download the data and bring it back with her.

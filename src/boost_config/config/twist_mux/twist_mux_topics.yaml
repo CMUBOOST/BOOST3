@@ -12,17 +12,22 @@ topics:
   timeout : 0.5
   priority: 10
 -
-  name    : joystick
-  topic   : joy_teleop/cmd_vel
-  timeout : 0.5
-  priority: 100
--
   name    : gps_heading
   topic   : nav_vel_heading
   timeout : 0.5
   priority: 20
 -
+  name    : 3vistor_vel
+  topic   : sickToF/nav_vel
+  timeout : 1.0
+  priority: 25
+-
   name    : camera_stitch
   topic   : camera_stitch/cmd_vel
   timeout : 0.5
   priority: 30
+-
+  name    : joystick
+  topic   : joy_teleop/cmd_vel
+  timeout : 0.5
+  priority: 100
