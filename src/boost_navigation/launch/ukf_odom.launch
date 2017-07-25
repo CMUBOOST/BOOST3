@@ -34,10 +34,10 @@
 
       <param name="odom0" value="wheel_encoder/odom"/>
       <param name="pose0" value="initialpose"/>
-      <param name="imu0" value="mti/sensor/imu"/>
+      <!-- <param name="imu0" value="mti/sensor/imu"/> -->
       <!-- <param name="imu0" value="um7/imu/data"/> -->
 
-      <param name="imu1" value="gps/imu/data"/>
+      <param name="imu0" value="gps/imu/data"/>
 
 
 
@@ -77,16 +77,16 @@
       <param name="odom0_differential" value="false"/>
       <param name="pose0_differential" value="false"/>
       <param name="imu0_differential" value="false"/>
-      <param name="imu1_differential" value="false"/>
+      <!-- <param name="imu1_differential" value="false"/> -->
 
       <param name="odom0_relative" value="true"/>
       <param name="pose0_relative" value="false"/>
-      <param name="imu0_relative" value="true"/>
-      <param name="imu1_relative" value="false"/>
+      <param name="imu0_relative" value="false"/>
+      <!-- <param name="imu1_relative" value="false"/> -->
 
       <!-- If we're including accelerations in our state estimate, then we'll probably want to remove any acceleration that
            is due to gravity for each IMU. If you don't want to, then set this to false. Defaults to false if unspecified. -->
-      <param name="imu0_remove_gravitational_acceleration" value="true"/>
+      <param name="imu0_remove_gravitational_acceleration" value="false"/>
 
       <!-- The process noise covariance matrix can be difficult to tune, and can vary for each application, so it
            is exposed as a configuration parameter. The values are ordered as x, y, z, roll, pitch, yaw, vx, vy, vz,
@@ -96,7 +96,7 @@
                                                   0,    0,    0.06, 0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
                                                   0,    0,    0,    0.03, 0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
                                                   0,    0,    0,    0,    0.03, 0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                                                  0,    0,    0,    0,    0,    1e0,  0,     0,     0,    0,    0,    0,    0,    0,    0,
+                                                  0,    0,    0,    0,    0,    0.03,  0,     0,     0,    0,    0,    0,    0,    0,    0,
                                                   0,    0,    0,    0,    0,    0,    1.0,   0,     0,    0,    0,    0,    0,    0,    0,
                                                   0,    0,    0,    0,    0,    0,    0,     1.0,   0,    0,    0,    0,    0,    0,    0,
                                                   0,    0,    0,    0,    0,    0,    0,     0,     0.04, 0,    0,    0,    0,    0,    0,
