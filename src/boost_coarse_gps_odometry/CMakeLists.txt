@@ -47,14 +47,9 @@ include_directories(
 
 ## Declare a C++ executable
 add_executable(boost_coarse_gps_odometry_node src/coarse_gps_odometry.cpp)
-add_executable(boost_tilt_correction_test_node src/tilt_correction_test.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(boost_coarse_gps_odometry_node
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-)
-target_link_libraries(boost_tilt_correction_test_node
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
 )

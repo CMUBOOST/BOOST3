@@ -105,8 +105,8 @@ void coarseOdomCallback(const nav_msgs::Odometry::ConstPtr& trans_msg, const nav
   ROS_INFO_STREAM("Heading: " << heading << "\n");
 
   // Correct GPS for roll and pitch using yaw, in UTM coordinates
-	double adj_x = gps_height*sin(rollImu)*sin(heading);
-	double adj_y = gps_height*sin(pitchImu)*cos(heading);	
+	double adj_x = gps_height*tanf(rollImu)*sinf(heading);
+	double adj_y = gps_height*tanf(pitchImu)*cosf(heading);	
 	ROS_INFO_STREAM("Adj X: " << adj_x << "\tAdj Y: " << adj_y << "\n");	
 
 

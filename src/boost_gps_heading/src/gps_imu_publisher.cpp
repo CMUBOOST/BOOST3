@@ -18,6 +18,14 @@
 		- WRITE LOW PASS FILTER FOR CHANGES IN COURSE HEADING, STORE PREVIOUS HEADING SOMEWHERE
 */
 
+
+// Initialize Imu publisher, which will hold the heading information calculated in the callBack
+ros::Publisher imu_pub;
+
+double fit_heading = 0;
+bool flag_heading = false;
+double yaw_bias = 0;
+
 const double pi = 4*atan(1);
 const double toRadians = pi / 180.0;
 double prevX = 0.0;
@@ -114,9 +122,63 @@ double bestFit(queue *Q) {
 
 // TODO: ADD ALTITUDE TO GET 3D POSE ESTIMATE
 
+void imuGPSCallback(const sensor_msgs::Imu::ConstPtr& imu_msg)
+{
+
+	// ROS_INFO_STREAM("Got into imu callback!");
+	
+
+	// Get roll and pitch from xsens IMU
+	double quat_x = imu_msg->orientation.x;
+  	double quat_y = imu_msg->orientation.y;
+  	double quat_z = imu_msg->orientation.z;
+  	double quat_w = imu_msg->orientation.w;
+  	tf::Quaternion q(quat_x, quat_y, quat_z, quat_w);
+  	tf::Matrix3x3 m(q);
+  	double rollImu, pitchImu, yawImu; // tilt angles
+  	m.getRPY(rollImu, pitchImu, yawImu);
+
+  	// Update yaw bias
+	if (flag_heading)
+	{
+		// ROS_INFO_STREAM("Flag_heading is true!");
+		yaw_bias = yawImu - fit_heading;
+		flag_heading = false;
+	}
+
+	// Update yaw to be globally referenced
+	yawImu = yawImu + yaw_bias;
+
+	// Populate and publish message
+	sensor_msgs::Imu new_imu_msg;
+
+	new_imu_msg.header.frame_id = "mti_imu_link";
+	new_imu_msg.header.stamp = ros::Time::now();
+
+	geometry_msgs::Quaternion pose_quat = tf::createQuaternionMsgFromRollPitchYaw(rollImu, pitchImu, yawImu);
+
+	new_imu_msg.orientation = pose_quat;
+
+	new_imu_msg.orientation_covariance[0] = 1e-2;
+	new_imu_msg.orientation_covariance[4] = 1e-2;
+	new_imu_msg.orientation_covariance[8] = 1e-2;
+
+	// ROS_INFO_STREAM("Publishing new imu msg!");
+	double numSub = imu_pub.getNumSubscribers();
+	// ROS_INFO_STREAM("spinning, num sub is: " << numSub);
+	while (imu_pub.getNumSubscribers() < 0)
+	{
+		double numSub = imu_pub.getNumSubscribers();
+		ros::spin();
+		// ROS_INFO_STREAM("spinning, num sub is: " << numSub);
+	}
+
+	imu_pub.publish(new_imu_msg);
+}
+
 void gpsHeadingCallback(const nav_msgs::Odometry::ConstPtr& utm_msg)
 {
-	ROS_DEBUG_STREAM("Got into callback!");
+	ROS_INFO_STREAM("Got into gpsHeadingCallback!");
 	
 	// Add x and y to respective arrays, along with time, check for GBAS and fix
 
@@ -131,13 +193,13 @@ void gpsHeadingCallback(const nav_msgs::Odometry::ConstPtr& utm_msg)
 
 bool driveForward(std_srvs::Empty::Request &req, std_srvs::Empty::Response &resp)
 {
-
+	
+	ROS_INFO_STREAM("Got into driveForward service node!");
+	
 	ros::NodeHandle nh;
 
-  	ros::Subscriber sub_joint_command = nh.subscribe("odometry/utm", 1, gpsHeadingCallback);
-
-	// Initialize Imu publisher, which will hold the heading information calculated in the callBack
-	ros::Publisher imu_pub = nh.advertise<sensor_msgs::Imu>("gps/imu/data", 1, false);
+  	// ros::Subscriber sub_joint_command = nh.subscribe("odometry/utm", 1, gpsHeadingCallback);
+  	ros::Subscriber sub_joint_command = nh.subscribe("odom", 1, gpsHeadingCallback);
 
 	// Start moving the robot at a constant velocity with a twist of 0.
 	ros::Publisher twist_pub = nh.advertise<geometry_msgs::Twist>("nav_vel_heading", 1);
@@ -154,7 +216,7 @@ bool driveForward(std_srvs::Empty::Request &req, std_srvs::Empty::Response &resp
 
 	double xCheck = currX;
 	double yCheck = currY;
-	double fit_heading = 0;	
+		
 	
 	// Create Queue header for position data
 	queue *posQ = new queue;
@@ -177,7 +239,7 @@ bool driveForward(std_srvs::Empty::Request &req, std_srvs::Empty::Response &resp
 		// Check that positions were updated
 		if (xCheck == currX || yCheck == currY)
 		{
-			ROS_DEBUG_STREAM(" X/Y have not been updated!");
+			ROS_INFO_STREAM(" X/Y have not been updated!");
 			r.sleep();
 			ros::spinOnce();
 			continue;
@@ -189,14 +251,14 @@ bool driveForward(std_srvs::Empty::Request &req, std_srvs::Empty::Response &resp
 		double dx = currX-prevX;
 		double dy = currY-prevY;
 		double dist = pow(dx*dx + dy*dy, 0.5);  // output in meters
-		ROS_DEBUG("dist is: %05.16f", dist);
+		// ROS_DEBUG("dist is: %05.16f", dist);
 
     	// Enqueue new position data onto the position queue
     	enq(posQ, currX, currY, currTime);
     	if (posQ->size > sample_size) deq(posQ);
         
-		ROS_DEBUG("Previous Location is: x: %05.10f, y: %05.10f", prevX, prevY);
-		ROS_DEBUG("Current Location is:  x: %05.10f, y: %05.10f", currX, prevY);
+		// ROS_DEBUG("Previous Location is: x: %05.10f, y: %05.10f", prevX, prevY);
+		// ROS_DEBUG("Current Location is:  x: %05.10f, y: %05.10f", currX, prevY);
 		
 		r.sleep();
 		ros::spinOnce();
@@ -208,23 +270,11 @@ bool driveForward(std_srvs::Empty::Request &req, std_srvs::Empty::Response &resp
     	// Calculate Average Heading from position Queue (linear regression)
 		fit_heading = bestFit(posQ);
 
-		// Populate and publish message
-		sensor_msgs::Imu imu_msg;
+		// Set flag to true to update yaw bias
+		flag_heading = true;
 
-		imu_msg.header.frame_id = "GPS_link";
-		imu_msg.header.stamp = ros::Time::now();
 
-		geometry_msgs::Quaternion pose_quat = tf::createQuaternionMsgFromYaw(fit_heading);
-
-		imu_msg.orientation = pose_quat;
-
-		imu_msg.orientation_covariance[0] = 1e6;
-		imu_msg.orientation_covariance[4] = 1e6;
-		imu_msg.orientation_covariance[8] = 1e-2;
-
-		imu_pub.publish(imu_msg);
-
-		ROS_INFO_STREAM("Publishing heading! Heading is " << fit_heading);
+		ROS_INFO_STREAM("Heading is " << fit_heading);
 
 		// Populate Twist message to stop robot
 		twist_msg.linear.x =  0;
@@ -278,14 +328,19 @@ bool driveForward(std_srvs::Empty::Request &req, std_srvs::Empty::Response &resp
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "boost_avg_heading_from_gps_service_publisher");
+	ros::init(argc, argv, "boost_gps_imu_publisher");
 
 	ros::NodeHandle n;
+	
+	imu_pub = n.advertise<sensor_msgs::Imu>("gps/imu/data", 1, false);
 
 	// Register service with the master
 	ros::ServiceServer server = n.advertiseService("acquire_Heading", &driveForward);
 
-	ros::Rate rate(4);
+  	ros::Subscriber sub_joint_command = n.subscribe("mti/sensor/imu", 1, imuGPSCallback);
+
+
+	ros::Rate rate(30);
 	while (ros::ok())
 	{
 		ros::spinOnce();

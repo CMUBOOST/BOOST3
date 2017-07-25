@@ -30,17 +30,17 @@
 
 
 	<!-- Launch Laser Scan Assembler -->
-	<node type="laser_scan_assembler" pkg="laser_assembler" name="my_assembler">
+<!-- 	<node type="laser_scan_assembler" pkg="laser_assembler" name="my_assembler">
 		<remap from="scan" to="scan/hokuyo" />
 		<param name="max_scans" type="int" value="1000" />
 		<param name="fixed_frame" type="string" value="/odom/ukf_dead_reckoning" />
-	</node>
+	</node> -->
 
 	<!-- Launch pointcloud processor -->
-	<node pkg="boost_laser_processing" type="voxelize_and_plane_segment" name="voxelize_and_plane_segment" respawn="true" output="screen" />
+<!-- 	<node pkg="boost_laser_processing" type="voxelize_and_plane_segment" name="voxelize_and_plane_segment" respawn="true" output="screen" /> -->
 
 	<!-- Launch laser_assembler periodic snapshotter -->
-	<node pkg="laser_assembler" type="periodic_snapshotter" name="periodic_snapshotter" respawn="true" />
+<!-- 	<node pkg="laser_assembler" type="periodic_snapshotter" name="periodic_snapshotter" respawn="true" /> -->
 
 
 

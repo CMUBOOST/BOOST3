@@ -1,0 +1,23 @@
+
+roslaunch boost_nav_startup nav_drivers.launch
+roslaunch boost_nav_startup sensor_drivers.launch
+roslaunch boost_nav_startup perception_startup.launch
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

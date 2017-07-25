@@ -61,6 +61,7 @@ add_executable(boost_gps_heading_node src/heading_from_gps.cpp)
 add_executable(boost_gps_avg_heading_node src/avg_heading_from_gps.cpp)
 add_executable(boost_utm_avg_heading_node src/avg_heading_from_utm.cpp)
 add_executable(boost_utm_avg_heading_service_node src/avg_heading_from_utm_service.cpp)
+add_executable(boost_gps_imu_publisher src/gps_imu_publisher.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(boost_gps_heading_node
@@ -80,6 +81,11 @@ target_link_libraries(boost_utm_avg_heading_node
 
 target_link_libraries(boost_utm_avg_heading_service_node
   ${catkin_LIBRARIES}
+)
+
+target_link_libraries(boost_gps_imu_publisher
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
 )
 
 #############

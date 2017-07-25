@@ -34,11 +34,10 @@
 
       <param name="odom0" value="wheel_encoder/odom"/>
       <param name="pose0" value="initialpose"/>
+      <param name="imu0" value="mti/sensor/imu"/>
+      <!-- <param name="imu0" value="um7/imu/data"/> -->
 
-      <!-- <param name="imu0" value="mti/sensor/imu"/> -->
-      <param name="imu0" value="um7/imu/data"/>
-
-      <!-- <param name="imu1" value="gps/imu/data"/> -->
+      <param name="imu1" value="gps/imu/data"/>
 
 
 
@@ -82,7 +81,7 @@
 
       <param name="odom0_relative" value="true"/>
       <param name="pose0_relative" value="false"/>
-      <param name="imu0_relative" value="false"/>
+      <param name="imu0_relative" value="true"/>
       <param name="imu1_relative" value="false"/>
 
       <!-- If we're including accelerations in our state estimate, then we'll probably want to remove any acceleration that
