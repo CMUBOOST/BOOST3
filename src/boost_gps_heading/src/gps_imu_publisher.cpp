@@ -198,8 +198,8 @@ bool driveForward(std_srvs::Empty::Request &req, std_srvs::Empty::Response &resp
 	
 	ros::NodeHandle nh;
 
-  	// ros::Subscriber sub_joint_command = nh.subscribe("odometry/utm", 1, gpsHeadingCallback);
-  	ros::Subscriber sub_joint_command = nh.subscribe("odom", 1, gpsHeadingCallback);
+  	ros::Subscriber sub_joint_command = nh.subscribe("odometry/utm", 1, gpsHeadingCallback);
+  	// ros::Subscriber sub_joint_command = nh.subscribe("odom", 1, gpsHeadingCallback);
 
 	// Start moving the robot at a constant velocity with a twist of 0.
 	ros::Publisher twist_pub = nh.advertise<geometry_msgs::Twist>("nav_vel_heading", 1);

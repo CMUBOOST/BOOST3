@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   sensor_msgs
+  nav_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -131,6 +132,7 @@ include_directories(
 ## Declare a C++ executable
 # add_executable(um7_covariance_pub src/um7_covariance_pub.cpp)
 add_executable(gps_point_collector src/gps_point_collector.cpp)
+add_executable(utm_point_collector src/utm_point_collector.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -138,6 +140,10 @@ add_executable(gps_point_collector src/gps_point_collector.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(gps_point_collector
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(utm_point_collector
   ${catkin_LIBRARIES}
 )
 

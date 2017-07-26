@@ -10,6 +10,12 @@
 		<!-- <remap from="fix" to="gps/fix" /> -->
 	</node>
 
+<!-- Launch gps_common utm_odometry_node, which will output GPS fix in UTM coordinate frame -->
+	<node pkg="gps_common" type="utm_odometry_node" name="utm_odometry_node" required="true" output="screen" >
+		<param name="child_frame_id" value="GPS_link" />
+		<remap from="odom" to="odometry/utm"/>
+	</node>
+
 <!-- Start base um7 driver, see http://wiki.ros.org/um7 -->
 
 	<node pkg="um7" name="imu_um7_base_driver" type="um7_driver" required="true" output="screen" >
