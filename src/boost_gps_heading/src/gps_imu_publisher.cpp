@@ -38,7 +38,7 @@ double currTime = 0.0;
 int sample_size = 100;
 double pub_rate = 20;
 
-double forward_velocity = 0.5;
+double forward_velocity = 1.0;
 
 typedef struct list_node list;
 struct list_node {
@@ -142,12 +142,14 @@ void imuGPSCallback(const sensor_msgs::Imu::ConstPtr& imu_msg)
 	if (flag_heading)
 	{
 		// ROS_INFO_STREAM("Flag_heading is true!");
-		yaw_bias = yawImu - fit_heading;
+		yaw_bias = yawImu - fit_heading + 3.14159;
 		flag_heading = false;
 	}
 
 	// Update yaw to be globally referenced
-	yawImu = yawImu + yaw_bias;
+	yawImu = yawImu - yaw_bias;
+
+	// ROS_INFO_STREAM("Yaw is: " << yawImu << "   Yawbias is: " << yaw_bias);
 
 	// Populate and publish message
 	sensor_msgs::Imu new_imu_msg;
@@ -159,9 +161,9 @@ void imuGPSCallback(const sensor_msgs::Imu::ConstPtr& imu_msg)
 
 	new_imu_msg.orientation = pose_quat;
 
-	new_imu_msg.orientation_covariance[0] = 1e-2;
-	new_imu_msg.orientation_covariance[4] = 1e-2;
-	new_imu_msg.orientation_covariance[8] = 1e-2;
+	new_imu_msg.orientation_covariance[0] = 1e-6;
+	new_imu_msg.orientation_covariance[4] = 1e-6;
+	new_imu_msg.orientation_covariance[8] = 1e-6;
 
 	// ROS_INFO_STREAM("Publishing new imu msg!");
 	double numSub = imu_pub.getNumSubscribers();
@@ -178,7 +180,7 @@ void imuGPSCallback(const sensor_msgs::Imu::ConstPtr& imu_msg)
 
 void gpsHeadingCallback(const nav_msgs::Odometry::ConstPtr& utm_msg)
 {
-	ROS_INFO_STREAM("Got into gpsHeadingCallback!");
+	// ROS_INFO_STREAM("Got into gpsHeadingCallback!");
 	
 	// Add x and y to respective arrays, along with time, check for GBAS and fix
 
@@ -234,8 +236,8 @@ bool driveForward(std_srvs::Empty::Request &req, std_srvs::Empty::Response &resp
 		// Publish twist message
 		twist_pub.publish(twist_msg);
 
-		ROS_INFO_STREAM("Time running is: " << (ros::Time::now().toSec() - start_time));
-		ROS_INFO_STREAM("Max time to run is: " << max_time);
+		// ROS_INFO_STREAM("Time running is: " << (ros::Time::now().toSec() - start_time));
+		// ROS_INFO_STREAM("Max time to run is: " << max_time);
 		// Check that positions were updated
 		if (xCheck == currX || yCheck == currY)
 		{

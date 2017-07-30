@@ -49,7 +49,7 @@ void fix_cb (const sensor_msgs::NavSatFixConstPtr& fix_msg)
   		gpsPointsFile.close();
 
 		// Wait a few seconds, software debounce for button press
-		sleep(5);
+		sleep(1.5);     // Changed from 5 by Duncan on 7-14-2017
 
 		// Set button flag to false again;
 		button_press_state = false;
@@ -61,7 +61,8 @@ void joy_cb (const sensor_msgs::JoyConstPtr& joy_msg)
 {
 	ROS_DEBUG_STREAM("Got into joy callback!");
 
-	if (!joy_msg->buttons[6] && joy_msg->buttons[7])
+	// if (!joy_msg->buttons[6] && joy_msg->buttons[7])
+        if (joy_msg->buttons[0])
 	{
 		ROS_INFO_STREAM("Button pressed!");
 		button_press_state = true;

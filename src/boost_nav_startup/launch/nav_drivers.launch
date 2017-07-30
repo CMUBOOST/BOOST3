@@ -74,6 +74,6 @@
 <!-- 	<node pkg="xsens_driver" type="mtdevice.py" name="mtdevice" args="-f 100 -m 2 -x 39"  output="screen" /> -->
 
 <!-- Set arm in stow position -->
-	<node pkg="hebi" type="arm_stow_initial" name="arm_stow_initial" output="screen" />
+	<!-- node pkg="hebi" type="arm_stow_initial" name="arm_stow_initial" output="screen" /-->
 
 </launch>

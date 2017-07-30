@@ -42,9 +42,12 @@ boost_nav_vision::Heading headingMsg;
 
 typedef pcl::PointXYZ PointT;
 
+const double forwardVel = 0.5;
+const double turnGain = 4.0;
+
 void driveStraight()
 {
-  twist_msg.linear.x = 0.5;
+  twist_msg.linear.x = forwardVel;
   twist_msg.angular.z = 0.0;
   twist_pub.publish(twist_msg);
   ROS_INFO_STREAM("Driving straight!");
@@ -53,12 +56,11 @@ void driveStraight()
 void driveAdjust(float crosstrackAdj, float headingAdj)
 {
   // Just use crosstrack error for now, include heading error at some point
-  float zAdj = crosstrackAdj * 0.5;
-  twist_msg.linear.x = 0.5;
+  float zAdj = crosstrackAdj * turnGain;
+  twist_msg.linear.x = forwardVel;
   twist_msg.angular.z = zAdj;
   twist_pub.publish(twist_msg);
   ROS_INFO_STREAM("Adjusting direction!");
-
 }
 
 void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)

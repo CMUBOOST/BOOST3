@@ -131,6 +131,8 @@ int sendWheelSkidCommands(double velocityLeft, double velocityRight)
   cmd[4].actuator().velocity().set(NAN);
   cmd[5].actuator().velocity().set(NAN);
   cmd[6].actuator().velocity().set(NAN);
+  cmd[4].actuator().position().set(0);
+  cmd[6].actuator().position().set(-3.14);
   group_g->sendCommand(cmd);
   return(1);
 }

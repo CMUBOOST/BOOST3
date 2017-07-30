@@ -26,7 +26,8 @@ double forward_velocity;
 
 double omega; // angular velocity
 int loop_rate = 5; // in Hz
-double max_twist = 2; // max angular velocity in rad per second
+double omegaGain = 20;  //5
+double max_twist = 8; // (4) max angular velocity in rad per second
 
 
 void waypointCallback(const std_msgs::Float64MultiArray::ConstPtr& waypoint_msg)
@@ -43,6 +44,7 @@ void waypointCallback(const std_msgs::Float64MultiArray::ConstPtr& waypoint_msg)
 	double norm_n = sqrt(pow(p1_x - p0_x, 2) + pow(p1_y - p0_y, 2));
 	n[0] = (p1_x - p0_x) / norm_n;
 	n[1] = (p1_y - p0_y) / norm_n;
+	ROS_DEBUG_STREAM("Heading is: " << n[0] << ", " << n[1]);
 	
 	ROS_DEBUG_STREAM("Setting waypoint flag to true!");
 	waypointFlag = true;
@@ -117,7 +119,7 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr& odom_msg)
 		else if (h_cross_l > 0) theta = alpha;
 		else if (h_cross_l < 0) theta = -alpha;
 		
-		omega = theta*loop_rate;
+		omega = theta*omegaGain;
 		if ((fabs(omega) > max_twist) && (omega < 0)) omega = -max_twist;
 		else if ((fabs(omega) > max_twist) && (omega > 0)) omega = max_twist;
 
@@ -125,7 +127,8 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr& odom_msg)
 		printf("e_x = %0.6f\te_y = %0.6f\n", e[0], e[1]);
 		printf("l_x = %0.6f\tl_y = %0.6f\n", l[0], l[1]);
 		ROS_DEBUG_STREAM("h x l =   " << h_cross_l);
-		ROS_DEBUG_STREAM("Heading = " << heading << ",\t" << heading*180/pi);
+		ROS_INFO_STREAM("Heading = " << heading << ",\t" << heading*180/pi);
+		ROS_INFO_STREAM("Desired heading = " << atan2(n[1], n[0]));
 		ROS_DEBUG_STREAM("Lookvect = " << atan2(l[1],l[0]) << ",\t" << atan2(l[1],l[0])*180/pi);
 		ROS_DEBUG_STREAM("N vector = " << atan2(n[1], n[0]) << ",\t" << atan2(n[1],n[0])*180/pi);
 		ROS_DEBUG_STREAM("E mag =   " << e_mag);

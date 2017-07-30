@@ -4,10 +4,7 @@
 <launch>
 
 	<!-- Launch gps_common utm_odometry_node, which will output GPS fix in UTM coordinate frame -->
-	<node pkg="gps_common" type="utm_odometry_node" name="utm_odometry_node" required="true" >
-		<param name="child_frame_id" value="GPS_link" />
-		<remap from="odom" to="odometry/utm"/>
-	</node>
+<!-- oo -->
 
 		<!-- Launch gps heading node, which publishes an IMU with orientations calculated using consecutive GPS coordinates -->
 	<node pkg="boost_gps_heading" type="boost_gps_imu_publisher" name="gps_imu_publisher_node" required="true" output="screen"/>
@@ -15,7 +12,7 @@
 	<!-- <node pkg="boost_gps_heading" type="boost_utm_avg_heading_service_node" name="gps_heading_service_node" output="screen"/> -->
 
 		<!-- Launch ukf_odom node, which fuses the all the sensors into one translationally relative and orientationally absolute state estimate-->
-	<include file="$(find boost_navigation)/launch/ukf_odom.launch"/>
+	<!-- <include file="$(find boost_navigation)/launch/ukf_odom.launch"/> -->
 
 		<!-- Launch coarse_gps_odometry node, which combines location in UTM coordinates with absolute orientation from robot_localization node above -->
 		<node pkg="boost_coarse_gps_odometry" type="boost_coarse_gps_odometry_node" name="coarse_gps_odometry_node" output="screen">
@@ -24,9 +21,14 @@
 
 	<!-- Launch line follower node, which listens for 2 data points on topic /gps/waypoints with message type Float64MultiArray, along with odometry/coarse_gps, and implements Pure Pursuits -->
 	<node pkg="boost_gps_line_follower" type="boost_gps_line_follower_node2" name="boost_gps_line_follower_node2" output="screen" >
-		<param name="lookahead_distance" value="1" />
-		<param name="forward_velocity" value="0.3" />
+		<param name="lookahead_distance" value="0.5" />
+		<param name="forward_velocity" value="3.0" />
 	</node>
+
+	<!-- Publish GPS waypoints -->
+	<!-- <node pkg="boost_gps_line_follower" type="publishArray" name="publishArray" output="screen"/> -->
+
+
 </launch>
 
 

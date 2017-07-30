@@ -43,8 +43,8 @@ double gps_height = 1.702; // height of gps receiver in meters
 /*
  * Simpson Fields 2017
  */
-double x_datum = 340138.0;
-double y_datum = 3831523.0;
+double x_datum = 342138.0;
+double y_datum = 3833523.0;
 double z_datum = 1227.5;
 
 /*
@@ -62,7 +62,8 @@ double z_datum = 1227.5;
 // double z_datum = 7.318;
 
 
-void coarseOdomCallback(const nav_msgs::Odometry::ConstPtr& trans_msg, const nav_msgs::Odometry::ConstPtr& orient_msg)
+// void coarseOdomCallback(const nav_msgs::Odometry::ConstPtr& trans_msg, const nav_msgs::Odometry::ConstPtr& orient_msg)
+void coarseOdomCallback(const nav_msgs::Odometry::ConstPtr& trans_msg, const sensor_msgs::Imu::ConstPtr& orient_msg)
 {
   // double dy_max = 0.01;
 	// ROS_DEBUG_STREAM("Got into callback!");-
@@ -94,29 +95,35 @@ void coarseOdomCallback(const nav_msgs::Odometry::ConstPtr& trans_msg, const nav
   // }
 	// ROS_INFO_STREAM("Tilt angle: " << tilt_angle * 180 / PI << "\tdy: " << dy << "\tdt: " << dt << "\tdelta dy: " << fabs(dy - prev_dy)); 
 	
-	double quat_x = orient_msg->pose.pose.orientation.x;
-	double quat_y = orient_msg->pose.pose.orientation.y;
-	double quat_z = orient_msg->pose.pose.orientation.z;
-	double quat_w = orient_msg->pose.pose.orientation.w;
+	// double quat_x = orient_msg->pose.pose.orientation.x;
+	// double quat_y = orient_msg->pose.pose.orientation.y;
+	// double quat_z = orient_msg->pose.pose.orientation.z;
+	// double quat_w = orient_msg->pose.pose.orientation.w;
+  double quat_x = orient_msg->orientation.x;
+  double quat_y = orient_msg->orientation.y;
+  double quat_z = orient_msg->orientation.z;
+  double quat_w = orient_msg->orientation.w;
 	tf::Quaternion q(quat_x, quat_y, quat_z, quat_w);
 	tf::Matrix3x3 m(q);
 	double roll, pitch, yaw; // tilt angles
 	m.getRPY(roll, pitch, yaw);
 	double heading = yaw; 
-  ROS_INFO_STREAM("Roll: " << roll << "\tPitch: " << pitch << "\tYaw: " << yaw << "\n");
-  ROS_INFO_STREAM("Heading: " << heading << "\n");
+  // ROS_INFO_STREAM("Roll: " << roll << "\tPitch: " << pitch << "\tYaw: " << yaw << "\n");
+  // ROS_INFO_STREAM("Heading: " << heading << "\n");
 
   // Correct GPS for roll and pitch using yaw, in UTM coordinates
   double dxl = sinf(pitch) * gps_height;
-  double dyl = sinf(roll) * gps_height;
+  double dyl = -sinf(roll) * gps_height;
 
-  double dxg = -(dxl*cosf(heading) + dyl*cosf(heading - 1.57079632679));
-  double dyg = -(dxl*sinf(heading) + dyl*sinf(heading - 1.57079632679));
+  double dxg = (dxl*cosf(heading) + dyl*cosf(heading - 1.57079632679));
+  double dyg = (dxl*sinf(heading) + dyl*sinf(heading - 1.57079632679));
+
+  // ROS_INFO_STREAM("dxl: " << dxl << "\t dyl: " << dyl << "\n dxg: " << dxg << "\t dyg: " << dyg);
 
 
 	// double adj_x = gps_height*tanf(rollImu)*sinf(heading);
 	// double adj_y = gps_height*tanf(pitchImu)*cosf(heading);	
-	ROS_INFO_STREAM("Adj X: " << dxg << "\tAdj Y: " << dyg << "\n");	
+	// ROS_INFO_STREAM("Adj X: " << dxg << "\tAdj Y: " << dyg << "\n");	
 
 
   // odom is a global variable
@@ -124,12 +131,12 @@ void coarseOdomCallback(const nav_msgs::Odometry::ConstPtr& trans_msg, const nav
 	odom.header.frame_id = frame_id;
 	odom.child_frame_id = child_frame_id;
 
-	odom.pose.pose.position.x = (trans_msg->pose.pose.position.x - x_datum) + dxg;
-	odom.pose.pose.position.y = (trans_msg->pose.pose.position.y - y_datum) + dyg;
-	odom.pose.pose.position.z = trans_msg->pose.pose.position.z - z_datum;
+	odom.pose.pose.position.x = (x_datum - trans_msg->pose.pose.position.x) + dxg;
+	odom.pose.pose.position.y = (y_datum - trans_msg->pose.pose.position.y) + dyg;
+	odom.pose.pose.position.z = z_datum - trans_msg->pose.pose.position.z;
 
-	odom.pose.pose.orientation = orient_msg->pose.pose.orientation;
-
+	// odom.pose.pose.orientation = orient_msg->pose.pose.orientation;
+  odom.pose.pose.orientation = orient_msg->orientation;
     	// Use ENU covariance to build XYZRPY covariance
     	boost::array<double, 36> covariance = {{
       trans_msg->pose.covariance[0],
@@ -145,22 +152,31 @@ void coarseOdomCallback(const nav_msgs::Odometry::ConstPtr& trans_msg, const nav
       trans_msg->pose.covariance[14],
       0, 0, 0,
       0, 0, 0, 
-      orient_msg->pose.covariance[21],
-      orient_msg->pose.covariance[22],
-      orient_msg->pose.covariance[23],
+      // orient_msg->pose.covariance[21],
+      // orient_msg->pose.covariance[22],
+      // orient_msg->pose.covariance[23],
+      orient_msg->orientation_covariance[0],
+      orient_msg->orientation_covariance[1],
+      orient_msg->orientation_covariance[2],
       0, 0, 0,
-      orient_msg->pose.covariance[27],
-      orient_msg->pose.covariance[28],
-      orient_msg->pose.covariance[29],
+      // orient_msg->pose.covariance[27],
+      // orient_msg->pose.covariance[28],
+      // orient_msg->pose.covariance[29],
+      orient_msg->orientation_covariance[3],
+      orient_msg->orientation_covariance[4],
+      orient_msg->orientation_covariance[5],
       0, 0, 0,
-      orient_msg->pose.covariance[33],
-      orient_msg->pose.covariance[34],
-      orient_msg->pose.covariance[35],
+      // orient_msg->pose.covariance[33],
+      // orient_msg->pose.covariance[34],
+      // orient_msg->pose.covariance[35],
+      orient_msg->orientation_covariance[6],
+      orient_msg->orientation_covariance[7],
+      orient_msg->orientation_covariance[8]
     }};
 
     odom.pose.covariance = covariance;
 
-    odom.twist = orient_msg->twist;
+    // odom.twist = orient_msg->twist;
 
 	  ROS_DEBUG_STREAM("Publishing odom!");
     odom_pub.publish(odom);
@@ -175,8 +191,9 @@ void coarseOdomCallback(const nav_msgs::Odometry::ConstPtr& trans_msg, const nav
     odom_tf.transform.translation.x = odom.pose.pose.position.x;
     odom_tf.transform.translation.y = odom.pose.pose.position.y;
     odom_tf.transform.translation.z = odom.pose.pose.position.z;
-    ROS_DEBUG("Translation tf is x: %010.10f,  y: %010.10f, z: %010.10f", odom_tf.transform.translation.x, odom_tf.transform.translation.y, odom_tf.transform.translation.z);
-    odom_tf.transform.rotation = orient_msg->pose.pose.orientation;
+    // ROS_DEBUG("Translation tf is x: %010.10f,  y: %010.10f, z: %010.10f", odom_tf.transform.translation.x, odom_tf.transform.translation.y, odom_tf.transform.translation.z);
+    // odom_tf.transform.rotation = orient_msg->pose.pose.orientation;
+    odom_tf.transform.rotation = orient_msg->orientation;
 
     // prev_dy = dy;
 
@@ -205,9 +222,11 @@ int main(int argc, char **argv)
 
 
 	message_filters::Subscriber<nav_msgs::Odometry> utm_sub(nh, "odometry/utm", 10);
-	message_filters::Subscriber<nav_msgs::Odometry> orient_sub(nh, "odometry/filtered_imu_encoders", 10);
+	// message_filters::Subscriber<nav_msgs::Odometry> orient_sub(nh, "odometry/filtered_imu_encoders", 10);
+  message_filters::Subscriber<sensor_msgs::Imu> orient_sub(nh, "gps/imu/data", 10);
 	
-	typedef message_filters::sync_policies::ApproximateTime<nav_msgs::Odometry, nav_msgs::Odometry> MySyncPolicy;
+	// typedef message_filters::sync_policies::ApproximateTime<nav_msgs::Odometry, nav_msgs::Odometry> MySyncPolicy;
+  typedef message_filters::sync_policies::ApproximateTime<nav_msgs::Odometry, sensor_msgs::Imu> MySyncPolicy;
 
 	// ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(10)
 	message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), utm_sub, orient_sub);
@@ -231,12 +250,12 @@ int main(int argc, char **argv)
     	if (last_time != odom.header.stamp)
     	{
 	    	// perform subscribed callback again and wait until it has to publish again
-		    ROS_INFO_STREAM("Publishing odom!");
+		    // ROS_INFO_STREAM("Publishing odom!");
 	    	odom_pub.publish(odom);
 
         if (publish_tf)
         {
-          ROS_INFO_STREAM("Publishing tf!");
+          // ROS_INFO_STREAM("Publishing tf!");
           odom_broadcaster.sendTransform(odom_tf);
         }
     	}

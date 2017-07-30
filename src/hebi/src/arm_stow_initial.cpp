@@ -142,7 +142,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "arm_stow_initial");
   ros::NodeHandle n;
   SubscribeAndPublish SAPObject;
-  log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME)->setLevel(ros::console::g_level_lookup[ros::console::levels::Debug]);
+  log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME)->setLevel(ros::console::g_level_lookup[ros::console::levels::Warn]);
   ROS_INFO("Ready to configure the arm.");
   while(ros::ok() && globalFlag==0){
     ros::spinOnce();
